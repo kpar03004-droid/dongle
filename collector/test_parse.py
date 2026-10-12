@@ -4,7 +4,7 @@ import unittest
 from unittest import mock
 from pathlib import Path
 
-from parse import parse_message
+from parse import parse_message, shop_of
 import collect
 
 RAW = Path(__file__).resolve().parent.parent / "data" / "raw" / "2026-10.jsonl"
@@ -32,6 +32,11 @@ class ParseTest(unittest.TestCase):
         # 화살표 '->', 구분자 '|' 도 읽어야 함
         items = parse_message("[룬 | 힘] | 300 -> 310")
         self.assertEqual((items[0]["key"], items[0]["price"]), ("힘", 310))
+
+    def test_shop_of(self):
+        self.assertEqual(shop_of(ROWS[0]["content"]), "alch")
+        self.assertEqual(shop_of(ROWS[1]["content"]), "cook")
+        self.assertIsNone(shop_of("안녕하세요"))
 
     def test_not_price(self):
         self.assertEqual(parse_message("동글랜드 TOGETHER 채널을 팔로우했습니다"), [])

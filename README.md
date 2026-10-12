@@ -25,7 +25,7 @@
    - **OAuth2 → URL Generator**: scope `bot`, 권한 `View Channels` + `Read Message History` → 나온 주소로 내 서버에 초대
 4. 이 저장소 **Settings → Secrets and variables → Actions → New repository secret**
    이름 `DISCORD_BOT_TOKEN`, 값은 3번 토큰
-5. 디스코드 **설정 → 고급 → 개발자 모드** 켜기 → 두 채널을 길게 눌러 **채널 ID 복사** → `collector/config.json`에 넣는다.
+5. (채널 ID는 필요 없음 — 봇이 들어간 서버의 모든 글 채널을 읽고, 메시지 내용으로 연금·요리를 구분합니다)
 6. **Actions → 시세 수집 → Run workflow**로 한 번 돌려 본다. 초록 체크가 뜨고 `data/raw/`에 새 줄이 생기면 성공.
 
 ## 사이트 올리기 (EdgeOne)

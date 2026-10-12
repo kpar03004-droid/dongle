@@ -17,7 +17,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from parse import parse_message  # noqa: E402
+from parse import parse_message, shop_of  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 RAW_DIR = ROOT / "data" / "raw"
@@ -78,18 +78,15 @@ def fetch_new(channel_id, after_id, token):
     return got
 
 
-def discover_channels(token):
-    """config.json 에 채널 ID가 없으면, 봇이 들어가 있는 서버에서 이름으로 채널을 찾는다.
-    예) 채널 이름에 「연금」이 들어가면 연금술사, 「요리」가 들어가면 요리사."""
-    found = {}
+def text_channels(token):
+    """봇이 들어가 있는 서버의 글 채널을 전부 찾는다.
+    채널 이름은 상관없음 — 어느 상점 알림인지는 메시지 내용으로 구분한다."""
+    found = []
     for guild in discord_get("/users/@me/guilds", token):
         for ch in discord_get(f"/guilds/{guild['id']}/channels", token):
-            if ch.get("type") not in (0, 5):  # 글 채널 · 공지 채널만
-                continue
-            for shop, conf in CONFIG["channels"].items():
-                if shop not in found and conf["match"] in ch.get("name", ""):
-                    found[shop] = ch["id"]
-                    print(f"[{shop}] 채널 찾음: {guild['name']} #{ch['name']}")
+            if ch.get("type") in (0, 5):  # 글 채널 · 공지 채널
+                found.append(ch)
+                print(f"채널: {guild['name']} #{ch['name']}")
     return found
 
 
@@ -155,20 +152,20 @@ def main():
     if token:
         known = {r["id"] for r in rows}
         new_rows = []
-        found = discover_channels(token)
-        for shop, ch in CONFIG["channels"].items():
-            ch_id = ch.get("id") or found.get(shop)
-            if not ch_id:
-                print(f"[{shop}] 채널을 찾지 못해 건너뜀 (채널 이름에 「{ch['match']}」가 들어가야 합니다)")
+        for ch in text_channels(token):
+            last = max((int(r["id"]) for r in rows if r.get("ch") == ch["id"]), default=None)
+            try:
+                msgs = fetch_new(ch["id"], str(last) if last else None, token)
+            except urllib.error.HTTPError as e:
+                print(f"  #{ch['name']} 읽기 실패 ({e.code}) — 봇에게 이 채널 보기 권한이 없을 수 있어요")
                 continue
-            last = max((int(r["id"]) for r in rows
-                        if r["shop"] == shop and r["id"].isdigit()), default=None)
-            msgs = fetch_new(ch_id, str(last) if last else None, token)
             for m in msgs:
-                if m["id"] in known or not m.get("content"):
+                shop = shop_of(m.get("content") or "")
+                if m["id"] in known or not shop:
                     continue
-                new_rows.append({"id": m["id"], "shop": shop, "ts": m["timestamp"], "content": m["content"]})
-            print(f"[{shop}] 새 메시지 {sum(1 for r in new_rows if r['shop'] == shop)}개")
+                new_rows.append({"id": m["id"], "ch": ch["id"], "shop": shop, "ts": m["timestamp"], "content": m["content"]})
+        for shop in CONFIG["channels"]:
+            print(f"[{shop}] 새 시세 알림 {sum(1 for r in new_rows if r['shop'] == shop)}개")
         append_raw(new_rows)
         rows += new_rows
     else:

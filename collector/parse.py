@@ -63,3 +63,13 @@ def parse_message(text):
                 "price": int(m.group(3)),
             })
     return items
+
+
+RUNE_RE = re.compile(r"\[\s*룬\s*[ㅣ|]")
+
+
+def shop_of(text):
+    """메시지가 어느 상점 알림인지: 'alch'(룬이 있음) · 'cook'(그 외 시세) · None(시세 아님)."""
+    if not parse_message(text):
+        return None
+    return "alch" if RUNE_RE.search(text) else "cook"
