@@ -146,28 +146,61 @@ def build(rows):
     return out
 
 
+def collect_once(token, channels, rows, known):
+    """채널마다 지난번 이후 새 시세 알림을 가져와 rows 에 더하고, 새로 생긴 줄을 돌려준다."""
+    new_rows = []
+    for ch in channels:
+        last = max((int(r["id"]) for r in rows if r.get("ch") == ch["id"]), default=None)
+        try:
+            msgs = fetch_new(ch["id"], str(last) if last else None, token)
+        except urllib.error.HTTPError as e:
+            print(f"  #{ch['name']} 읽기 실패 ({e.code}) — 봇에게 이 채널 보기 권한이 없을 수 있어요")
+            continue
+        for m in msgs:
+            shop = shop_of(m.get("content") or "")
+            if m["id"] in known or not shop:
+                continue
+            known.add(m["id"])
+            new_rows.append({"id": m["id"], "ch": ch["id"], "shop": shop, "ts": m["timestamp"], "content": m["content"]})
+    append_raw(new_rows)
+    rows += new_rows
+    return new_rows
+
+
+def next_slot(now):
+    """지금 이후 가장 가까운 갱신 시각(유닉스 초)."""
+    return (int(now) // (SLOT_HOURS * 3600) + 1) * SLOT_HOURS * 3600
+
+
 def main():
     token = os.environ.get("DISCORD_BOT_TOKEN", "").strip()
+    wait = "--wait" in sys.argv   # 갱신 직전에 켜져서 알림이 올라올 때까지 기다리는 모드
     rows = load_raw()
     if token:
         known = {r["id"] for r in rows}
-        new_rows = []
-        for ch in text_channels(token):
-            last = max((int(r["id"]) for r in rows if r.get("ch") == ch["id"]), default=None)
-            try:
-                msgs = fetch_new(ch["id"], str(last) if last else None, token)
-            except urllib.error.HTTPError as e:
-                print(f"  #{ch['name']} 읽기 실패 ({e.code}) — 봇에게 이 채널 보기 권한이 없을 수 있어요")
-                continue
-            for m in msgs:
-                shop = shop_of(m.get("content") or "")
-                if m["id"] in known or not shop:
-                    continue
-                new_rows.append({"id": m["id"], "ch": ch["id"], "shop": shop, "ts": m["timestamp"], "content": m["content"]})
+        channels = text_channels(token)
+        new_rows = collect_once(token, channels, rows, known)
+        now = time.time()
+        slot = next_slot(now)
+        if now - (slot - SLOT_HOURS * 3600) < 25 * 60:
+            slot -= SLOT_HOURS * 3600   # 예약 실행이 밀려 정시를 넘겨 켜졌으면 방금 지난 정시를 기다림
+        if wait and slot - now < 40 * 60:
+            # 정시까지 기다렸다가 10초마다 확인. 두 상점이 다 오면 바로 끝냄.
+            # 한 상점만 왔으면 1분 더 기다리고, 정시 25분 뒤까지 안 오면 포기.
+            print(f"정시({datetime.fromtimestamp(slot, KST):%H:%M})까지 기다렸다가 확인합니다")
+            time.sleep(max(0, slot - time.time() - 5))
+            first_hit = None
+            while time.time() < slot + 25 * 60:
+                got = collect_once(token, channels, rows, known)
+                new_rows += got
+                shops = {r["shop"] for r in new_rows if to_slot(r["ts"]) == slot}
+                if shops and first_hit is None:
+                    first_hit = time.time()
+                if shops >= set(CONFIG["channels"]) or (first_hit and time.time() - first_hit > 60):
+                    break
+                time.sleep(10)
         for shop in CONFIG["channels"]:
             print(f"[{shop}] 새 시세 알림 {sum(1 for r in new_rows if r['shop'] == shop)}개")
-        append_raw(new_rows)
-        rows += new_rows
     else:
         print("DISCORD_BOT_TOKEN 없음 → 수집은 건너뛰고 prices.json 만 다시 만듭니다")
     out = build(rows)

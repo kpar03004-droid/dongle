@@ -12,6 +12,8 @@
 
 /* 시세 파일 주소 — 저장소 이름이 바뀌면 여기만 고치면 됨 */
 var DATA_URL='https://raw.githubusercontent.com/kpar03004-droid/dongle/main/data/prices.json';
+/* GitHub API 주소는 raw 와 달리 5분 캐시가 없어 새 시세가 바로 보임 (1시간 60회 제한 → 넘으면 raw 로) */
+var API_URL='https://api.github.com/repos/kpar03004-droid/dongle/contents/data/prices.json?ref=main';
 var CACHE_KEY='dongle-prices:cache:v1';
 var SLOT=3*3600;            // 3시간(초)
 var DAY=86400;
@@ -62,9 +64,13 @@ function injectCss(){ if(document.getElementById('dt-css')) return; var s=docume
 /* ---------- 데이터 불러오기 ---------- */
 function readCache(){ try{ return JSON.parse(localStorage.getItem(CACHE_KEY)||'null'); }catch(e){ return null; } }
 function writeCache(d){ try{ localStorage.setItem(CACHE_KEY,JSON.stringify(d)); }catch(e){} }
+function getJson(url,headers){
+  return fetch(url+(url.indexOf('?')<0?'?':'&')+'t='+Date.now(),{cache:'no-store',headers:headers||{}})
+    .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); });
+}
 function load(){
-  return fetch(DATA_URL+'?t='+Math.floor(Date.now()/60000),{cache:'no-store'})
-    .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+  return getJson(API_URL,{'Accept':'application/vnd.github.raw+json'})
+    .catch(function(){ return getJson(DATA_URL); })
     .then(function(d){ writeCache(d); return {data:d,from:'net'}; })
     .catch(function(err){ var c=readCache(); if(c) return {data:c,from:'cache',err:err}; throw err; });
 }
@@ -238,15 +244,27 @@ function mount(el,opt){
     body.querySelector('.dt-selname').textContent=(opt.icon?opt.icon(it)+' ':'')+it.key+(it.lo!=null?' ('+it.lo+'~'+it.hi+')':'');
     drawChart(body.querySelector('.dt-chartbox'),it,ui);
   }
+  var lastUpdated=null;
   function refresh(){
-    load().then(render).catch(function(){
+    load().then(function(res){
+      /* 내용이 같으면 다시 그리지 않음 (입력 중인 칸이 초기화되지 않게) */
+      if(res.from==='net'&&res.data.updated===lastUpdated) return;
+      lastUpdated=res.data.updated; render(res);
+    }).catch(function(){
       el.querySelector('.dt-status').innerHTML='<span class="bad">시세를 불러오지 못했습니다</span> — 인터넷 연결을 확인하거나 아래 붙여넣기를 써 주세요';
       if(opt.onData) opt.onData(null);
     });
   }
   refresh();
-  /* 10분마다 새 시세 확인, 화면 크기가 바뀌면 그래프 다시 그림 */
-  setInterval(refresh,10*60*1000);
+  /* 새 시세 확인: 정시(0·3·6…시) 직후 8분 동안은 20초마다, 그 외엔 10분마다.
+     화면을 다시 켰을 때도 바로 확인. */
+  var lastCheck=Date.now();
+  setInterval(function(){
+    var now=Date.now()/1000, slot=Math.floor(now/SLOT)*SLOT;
+    var waitingNew=now-slot<8*60&&(!lastInfo||lastInfo.latest<slot);
+    if(waitingNew||Date.now()-lastCheck>10*60*1000){ lastCheck=Date.now(); refresh(); }
+  },20*1000);
+  document.addEventListener('visibilitychange',function(){ if(!document.hidden&&Date.now()-lastCheck>60*1000){ lastCheck=Date.now(); refresh(); } });
   var rt=null; window.addEventListener('resize',function(){ clearTimeout(rt); rt=setTimeout(function(){ if(items.length) paint(); },150); });
   return {refresh:refresh,info:function(){return lastInfo;}};
 }
