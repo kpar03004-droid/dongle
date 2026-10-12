@@ -6,6 +6,7 @@ from pathlib import Path
 
 from parse import parse_message, shop_of
 import collect
+import ingest
 
 RAW = Path(__file__).resolve().parent.parent / "data" / "raw" / "2026-10.jsonl"
 ROWS = [json.loads(l) for l in RAW.read_text(encoding="utf-8").splitlines() if l.strip()]
@@ -40,6 +41,20 @@ class ParseTest(unittest.TestCase):
 
     def test_not_price(self):
         self.assertEqual(parse_message("동글랜드 TOGETHER 채널을 팔로우했습니다"), [])
+
+
+class IngestTest(unittest.TestCase):
+    def test_accept(self):
+        alerts = [
+            {"id": "1427000000000000000", "content": ROWS[0]["content"]},   # 연금 알림
+            {"id": "1427000000000000000", "content": ROWS[0]["content"]},   # 중복
+            {"id": "abc", "content": ROWS[1]["content"]},                   # ID 이상
+            {"id": "1427000000000000001", "content": "안녕하세요"},          # 시세 아님
+            "이상한 값",
+        ]
+        new = ingest.accept(alerts, [])
+        self.assertEqual([(r["id"], r["shop"]) for r in new], [("1427000000000000000", "alch")])
+        self.assertTrue(new[0]["ts"].startswith("20"))
 
 
 class BuildTest(unittest.TestCase):

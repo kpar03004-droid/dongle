@@ -1,28 +1,29 @@
-# 디스코드 시세를 가져와 data/ 에 저장하는 자동 작업
+# 디스코드 봇으로 시세를 가져오는 작업 (예비용)
 #
-# 이어달리기 방식: 실행 하나가 다음 갱신(한국 0·3·6…21시)까지 기다렸다가 알림이 올라오면
-# 10초 안에 가져와 저장하고, 끝나면서 다음 실행을 스스로 예약한다.
-# (GitHub 예약 실행(schedule)은 수십 분씩 밀리거나 빠지는 일이 있어서 '감시용'으로만 씀)
-name: 시세 수집
+# 지금은 상점알리미가 알림을 「게시(Publish)」하지 않아 팔로우 채널에 아무것도 오지 않으므로
+# 실제 수집은 PC 유저스크립트(ingest.yml)가 맡는다. 동글랜드에서 게시를 켜 주면 이쪽도 바로 동작한다.
+name: 시세 수집 (봇)
 
 on:
-  workflow_dispatch: {}     # 이어달리기 실행 (Actions 화면 「Run workflow」로 직접 시작해도 됨)
+  workflow_dispatch: {}
   schedule:
-    - cron: "20 */3 * * *"  # 감시: 이어달리기가 끊겼으면 다시 시작
-  push:                     # 수집기 코드를 고치면 한 번 돌려 봄
+    - cron: "20 */3 * * *"
+  push:
     branches: [main]
     paths: ["collector/**", ".github/workflows/**"]
 
 permissions:
-  contents: write           # 수집한 데이터 커밋
-  actions: write            # 다음 실행 예약
+  contents: write
+
+concurrency:
+  group: save-data
+  cancel-in-progress: false
 
 jobs:
   collect:
     runs-on: ubuntu-latest
-    timeout-minutes: 240
+    timeout-minutes: 10
     env:
-      GH_TOKEN: ${{ github.token }}
       DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
     steps:
       - uses: actions/checkout@v4
@@ -31,20 +32,9 @@ jobs:
           python-version: "3.12"
       - name: 해석기 테스트
         run: python -m unittest discover -s collector
-
-      - name: 이어달리기가 이미 돌고 있는지 확인
-        id: chain
-        run: |
-          # 지금 이 실행 말고 다른 workflow_dispatch 실행이 돌고 있거나 대기 중이면 이어달리기가 살아 있음
-          n=$(gh run list --workflow collect.yml --event workflow_dispatch --json databaseId,status \
-               --jq "[.[] | select(.databaseId != ${{ github.run_id }}) | select(.status != \"completed\")] | length")
-          echo "running=$n" >> "$GITHUB_OUTPUT"
-          echo "다른 이어달리기 실행: $n개"
-
-      - name: 수집 (이어달리기면 다음 갱신까지 기다림)
-        run: python collector/collect.py ${{ github.event_name == 'workflow_dispatch' && '--wait' || '' }}
-
-      - name: 바뀐 데이터 저장
+      - name: 수집
+        run: python collector/collect.py
+      - name: 커밋
         run: |
           git config user.name "dongle-prices-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -53,12 +43,7 @@ jobs:
             if git diff --cached --quiet -- data/raw; then echo "새 시세 없음"; break; fi
             git commit -q -m "시세 수집 $(TZ=Asia/Seoul date '+%m-%d %H:%M')"
             if git pull --rebase -q origin main && git push -q; then echo "저장 완료"; break; fi
-            # 다른 실행과 동시에 저장해서 꼬였으면: 최신 상태로 맞춘 뒤 다시 수집해서 저장
             git rebase --abort 2>/dev/null || true
             git reset -q --hard origin/main
             python collector/collect.py
           done
-
-      - name: 다음 실행 예약
-        if: github.event_name == 'workflow_dispatch' || steps.chain.outputs.running == '0'
-        run: gh workflow run collect.yml --ref main && echo "다음 이어달리기 예약함"

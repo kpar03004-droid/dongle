@@ -1,0 +1,38 @@
+# PC 유저스크립트(pc/dongle-alert.user.js)가 보낸 상점 알림을 저장하는 작업
+name: 시세 받기 (PC)
+
+on:
+  repository_dispatch:
+    types: [shop-alert]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: save-data          # 알림이 동시에 여러 개 와도 하나씩 차례로 저장
+  cancel-in-progress: false
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 받은 알림 저장
+        run: python collector/ingest.py "$GITHUB_EVENT_PATH"
+      - name: 커밋
+        run: |
+          git config user.name "dongle-prices-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for try in 1 2 3; do
+            git add data
+            if git diff --cached --quiet -- data/raw; then echo "새 시세 없음"; break; fi
+            git commit -q -m "시세 받음 (PC) $(TZ=Asia/Seoul date '+%m-%d %H:%M')"
+            if git pull --rebase -q origin main && git push -q; then echo "저장 완료"; break; fi
+            git rebase --abort 2>/dev/null || true
+            git reset -q --hard origin/main
+            python collector/ingest.py "$GITHUB_EVENT_PATH"
+          done

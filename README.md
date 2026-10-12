@@ -4,8 +4,21 @@
 룬 계산기 · 요리사 계산기 맨 위에 **지금 가격 + 30일 추이**를 보여 줍니다.
 
 ```
-상점알리미 → (채널 팔로우) → 내 디스코드 서버 → GitHub Actions(3시간마다) → data/prices.json → 사이트
+상점알리미 알림 → PC 크롬의 디스코드 탭(유저스크립트가 읽음) → GitHub(ingest.yml) → data/prices.json → 사이트
 ```
+
+> 처음엔 채널 팔로우 + 봇으로 모으려 했지만, 상점알리미가 알림을 「게시(Publish)」하지 않아 팔로우 채널로 전달되지 않습니다.
+> 봇 방식(collect.yml)은 예비로 남겨 두었고, 동글랜드에서 게시를 켜 주면 바로 동작합니다.
+
+## PC 설정 (유저스크립트)
+
+1. 크롬에 **Tampermonkey** 확장 설치 → 확장 프로그램 관리에서 Tampermonkey **「사용자 스크립트 허용」** 켜기
+2. <https://raw.githubusercontent.com/kpar03004-droid/dongle/main/pc/dongle-alert.user.js> 열기 → **설치**
+3. GitHub 토큰 만들기: <https://github.com/settings/personal-access-tokens/new>
+   - Repository access: **Only select repositories → dongle**
+   - Permissions → Repository permissions → **Contents: Read and write**
+4. 크롬에서 discord.com 로그인 → `#연금술사-변동상점` 탭, `#요리사-변동상점` 탭을 각각 열어 둠
+5. 처음 한 번 토큰을 물어보면 3번 토큰을 붙여넣기 (Tampermonkey 메뉴 「GitHub 토큰 넣기」로도 가능)
 
 | 폴더 | 내용 |
 |---|---|
