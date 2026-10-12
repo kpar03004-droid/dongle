@@ -35,7 +35,7 @@ def discord_get(path, token):
     """디스코드 API에 GET 요청. 너무 자주 부르면(429) 기다렸다 다시 시도."""
     req = urllib.request.Request(API + path, headers={
         "Authorization": "Bot " + token,
-        "User-Agent": "DiscordBot (https://github.com/kpar03004-droid/dongle-prices, 1.0)",
+        "User-Agent": "DiscordBot (https://github.com/kpar03004-droid/dongle, 1.0)",
     })
     for _ in range(5):
         try:

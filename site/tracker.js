@@ -11,7 +11,7 @@
 "use strict";
 
 /* 시세 파일 주소 — 저장소 이름이 바뀌면 여기만 고치면 됨 */
-var DATA_URL='https://raw.githubusercontent.com/kpar03004-droid/dongle-prices/main/data/prices.json';
+var DATA_URL='https://raw.githubusercontent.com/kpar03004-droid/dongle/main/data/prices.json';
 var CACHE_KEY='dongle-prices:cache:v1';
 var SLOT=3*3600;            // 3시간(초)
 var DAY=86400;
