@@ -184,19 +184,19 @@ def main():
         channels = text_channels(token)
         new_rows = collect_once(token, channels, rows, known)
         if wait and not new_rows:
-            # 새 알림이 올라올 때까지 15초마다 확인 (최대 3시간 20분).
-            # 알림이 오면 다른 상점 알림도 1분 더 기다렸다가 끝냄 → 저장 후 다음 실행이 이어서 기다림.
+            # 새 알림이 올라올 때까지 10초마다 확인 (최대 3시간 20분).
+            # 알림이 오면 다른 상점 알림도 20초 더 확인하고 끝냄 → 저장 후 다음 실행이 이어서 기다림.
             # 상점 알림 시각이 정확히 3시간 간격이 아니어도 놓치지 않게 '정시'에 의존하지 않는다.
             start = time.time()
-            print("새 알림을 기다립니다 (15초마다 확인)")
+            print("새 알림을 기다립니다 (10초마다 확인)")
             while time.time() - start < 200 * 60:
-                time.sleep(15)
+                time.sleep(10)
                 got = collect_once(token, channels, rows, known)
                 if got:
                     new_rows += got
-                    print(f"{datetime.now(KST):%H:%M:%S} 알림 받음 → 1분 더 기다렸다 저장")
-                    for _ in range(4):
-                        time.sleep(15)
+                    print(f"{datetime.now(KST):%H:%M:%S} 알림 받음 → 20초 더 확인하고 저장")
+                    for _ in range(2):
+                        time.sleep(10)
                         new_rows += collect_once(token, channels, rows, known)
                     break
         for shop in CONFIG["channels"]:
