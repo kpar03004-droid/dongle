@@ -174,29 +174,31 @@ def next_slot(now):
 
 def main():
     token = os.environ.get("DISCORD_BOT_TOKEN", "").strip()
-    wait = "--wait" in sys.argv   # 갱신 직전에 켜져서 알림이 올라올 때까지 기다리는 모드
+    wait = "--wait" in sys.argv   # 다음 갱신까지 기다렸다가 알림이 올라오면 바로 가져오는 모드
     rows = load_raw()
     if token:
         known = {r["id"] for r in rows}
         channels = text_channels(token)
         new_rows = collect_once(token, channels, rows, known)
+        all_shops = set(CONFIG["channels"])
+        have = lambda sl: {r["shop"] for r in rows if to_slot(r["ts"]) == sl}
         now = time.time()
         slot = next_slot(now)
-        if now - (slot - SLOT_HOURS * 3600) < 25 * 60:
-            slot -= SLOT_HOURS * 3600   # 예약 실행이 밀려 정시를 넘겨 켜졌으면 방금 지난 정시를 기다림
-        if wait and slot - now < 40 * 60:
+        if now - (slot - SLOT_HOURS * 3600) < 25 * 60 and not have(slot - SLOT_HOURS * 3600) >= all_shops:
+            slot -= SLOT_HOURS * 3600   # 방금 지난 정시 알림을 아직 못 받았으면 그것부터
+        if wait:
             # 정시까지 기다렸다가 10초마다 확인. 두 상점이 다 오면 바로 끝냄.
             # 한 상점만 왔으면 1분 더 기다리고, 정시 25분 뒤까지 안 오면 포기.
-            print(f"정시({datetime.fromtimestamp(slot, KST):%H:%M})까지 기다렸다가 확인합니다")
+            print(f"{datetime.fromtimestamp(slot, KST):%m-%d %H:%M} 알림을 기다립니다")
             time.sleep(max(0, slot - time.time() - 5))
             first_hit = None
             while time.time() < slot + 25 * 60:
-                got = collect_once(token, channels, rows, known)
-                new_rows += got
-                shops = {r["shop"] for r in new_rows if to_slot(r["ts"]) == slot}
-                if shops and first_hit is None:
+                new_rows += collect_once(token, channels, rows, known)
+                got = have(slot)
+                if got and first_hit is None:
                     first_hit = time.time()
-                if shops >= set(CONFIG["channels"]) or (first_hit and time.time() - first_hit > 60):
+                if got >= all_shops or (first_hit and time.time() - first_hit > 60):
+                    print(f"정시 + {int(time.time() - slot)}초에 받음")
                     break
                 time.sleep(10)
         for shop in CONFIG["channels"]:
