@@ -1,0 +1,1048 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>룬 손익 계산기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ground:#12181F;
+  --surface:#1B2430;
+  --surface-2:#232F3D;
+  --surface-3:#2C3A4A;
+  --line:#33424F;
+  --line-soft:#28353F;
+  --text:#F1F5F7;
+  --text-2:#AEBFCB;
+  --muted:#7B8D9C;
+  --amber:#A78BFA;
+  --amber-deep:#7C5CD6;
+  --mint:#5EEAD4;
+  --good:#6FE0A8;
+  --bad:#FF8A7A;
+  --warn:#F2C94C;
+  --violet:#A98BE0;
+  --sans:"IBM Plex Sans KR",system-ui,-apple-system,"Malgun Gothic",sans-serif;
+  --display:"Black Han Sans","IBM Plex Sans KR",system-ui,sans-serif;
+  --mono:"IBM Plex Mono","IBM Plex Sans KR",ui-monospace,monospace;
+  --measure:44rem;
+  --wide:68rem;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--ground);
+  color:var(--text);
+  font-family:var(--sans);
+  font-weight:400;
+  font-size:16px;
+  line-height:1.75;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:var(--wide);margin:0 auto;padding:0 20px}
+.col{max-width:var(--measure);margin-left:auto;margin-right:auto}
+
+/* ---------- header ---------- */
+.masthead{
+  border-bottom:1px solid var(--line-soft);
+  background:
+    radial-gradient(70rem 24rem at 50% -8rem, rgba(245,176,65,.14), transparent 70%),
+    var(--ground);
+  padding:64px 0 44px;
+}
+.eyebrow{
+  font-family:var(--mono);
+  font-size:.75rem;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color:var(--amber);
+  margin:0 0 14px;
+}
+h1{
+  font-family:var(--display);
+  font-weight:400;
+  font-size:clamp(2.4rem,7vw,4rem);
+  line-height:1.08;
+  letter-spacing:-.01em;
+  margin:0 0 16px;
+  text-wrap:balance;
+}
+h1 .sub{display:block;color:var(--amber);font-size:.44em;letter-spacing:.02em;margin-top:14px}
+.lede{font-size:1.06rem;color:var(--text-2);margin:0 0 26px;max-width:38rem;text-wrap:pretty}
+.meta{display:flex;flex-wrap:wrap;gap:8px}
+.chip{
+  font-family:var(--mono);font-size:.75rem;
+  border:1px solid var(--line);border-radius:999px;
+  padding:5px 12px;color:var(--text-2);background:var(--surface);
+}
+.chip b{color:var(--text);font-weight:500}
+
+/* ---------- nav ---------- */
+.toc{border-bottom:1px solid var(--line-soft);background:var(--surface);position:sticky;top:0;z-index:20}
+.toc-inner{display:flex;gap:0;overflow-x:auto;scrollbar-width:thin}
+.toc a{
+  flex:0 0 auto;display:flex;align-items:baseline;gap:8px;
+  padding:13px 16px;text-decoration:none;color:var(--text-2);
+  font-size:.86rem;white-space:nowrap;border-bottom:2px solid transparent;
+}
+.toc a .n{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+.toc a:hover{color:var(--text);background:var(--surface-2)}
+.toc a:focus-visible{outline:2px solid var(--amber);outline-offset:-2px}
+
+/* ---------- sections ---------- */
+section{padding:64px 0;border-bottom:1px solid var(--line-soft)}
+.sec-head{display:flex;gap:16px;align-items:flex-start;margin-bottom:8px}
+.sec-num{
+  font-family:var(--mono);font-size:.8rem;font-weight:600;color:var(--amber);
+  border:1px solid var(--amber-deep);border-radius:6px;padding:3px 8px;flex:0 0 auto;margin-top:6px;
+}
+h2{
+  font-family:var(--display);font-weight:400;
+  font-size:clamp(1.7rem,4vw,2.4rem);line-height:1.2;margin:0;text-wrap:balance;
+}
+h3{font-size:1.08rem;font-weight:600;margin:38px 0 12px;color:var(--text)}
+h4{font-size:.95rem;font-weight:600;margin:24px 0 8px;color:var(--text-2)}
+p{margin:0 0 16px;text-wrap:pretty}
+strong{font-weight:600;color:#fff}
+.dim{color:var(--muted)}
+
+/* takeaway */
+.takeaway{
+  border-left:3px solid var(--amber);
+  background:linear-gradient(90deg,rgba(245,176,65,.09),transparent 70%);
+  padding:16px 20px;margin:22px 0 28px;border-radius:0 8px 8px 0;
+}
+.takeaway .tag{
+  font-family:var(--mono);font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--amber);display:block;margin-bottom:6px;
+}
+.takeaway p{margin:0;font-size:1.04rem;color:var(--text)}
+
+/* note boxes */
+.note{border:1px solid var(--line);border-radius:8px;padding:14px 18px;margin:22px 0;background:var(--surface);font-size:.94rem;color:var(--text-2)}
+.note b{color:var(--text)}
+.note.warn{border-color:#6b5a24;background:rgba(242,201,76,.06)}
+.note.bad{border-color:#6b3a34;background:rgba(255,138,122,.06)}
+
+/* tables */
+.scroll{overflow-x:auto;margin:20px 0;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+caption{text-align:left;padding:12px 16px 0;color:var(--muted);font-size:.82rem;font-family:var(--mono)}
+th,td{padding:9px 14px;text-align:left;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+thead th{
+  font-family:var(--mono);font-size:.74rem;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--muted);font-weight:500;background:var(--surface-2);position:sticky;top:0;
+}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:rgba(255,255,255,.025)}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+.pos{color:var(--good)}
+.neg{color:var(--bad)}
+details.fold{border:1px solid var(--line);border-radius:10px;background:var(--surface-2);margin:14px 0;overflow:hidden}
+details.fold>summary{cursor:pointer;padding:12px 16px;font-size:.9rem;color:var(--text-2);list-style:none;display:flex;align-items:center;gap:8px}
+details.fold>summary::-webkit-details-marker{display:none}
+details.fold>summary::before{content:"▸";color:var(--amber);font-size:.9em;transition:transform .15s ease}
+details[open].fold>summary::before{transform:rotate(90deg)}
+details.fold>summary:hover{color:var(--text)}
+details.fold>summary b{color:var(--text);font-weight:600}
+details.fold .foldbody{padding:0 16px 16px}
+.tierpill{font-family:var(--mono);font-size:.68rem;border:1px solid var(--line);border-radius:4px;padding:1px 5px;color:var(--muted);margin-left:6px;vertical-align:1px}
+.tierpill.t4{border-color:#6b5a24;color:var(--amber)}
+.recmat{font-size:.82rem;color:var(--text-2);white-space:normal;line-height:1.5}
+tbody tr.off td{opacity:.35}
+.hl td{background:rgba(245,176,65,.08)}
+.hl td:first-child{box-shadow:inset 3px 0 0 var(--amber)}
+
+/* gauge */
+.gauge{margin:24px 0}
+.gauge-bar{height:38px;border-radius:8px;overflow:hidden;display:flex;border:1px solid var(--line)}
+.gz{display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:.76rem;font-weight:500}
+.gz1{background:#3A4652;color:#C3D0DA;flex:0 0 50%}
+.gz2{background:#B8912F;color:#1A1206;flex:0 0 30%}
+.gz3{background:#D4552F;color:#1A0A05;flex:0 0 20%}
+.gauge-scale{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.72rem;color:var(--muted);margin-top:6px}
+.gauge-marker{position:relative;height:0}
+.gm{position:absolute;top:-46px;width:2px;height:38px;background:var(--mint);box-shadow:0 0 0 1px rgba(18,24,31,.8)}
+.gm span{position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:.72rem;color:var(--mint);white-space:nowrap;background:var(--ground);padding:0 4px}
+
+/* calculator */
+.calc{
+  border:1px solid var(--line);border-radius:12px;background:var(--surface);
+  margin:28px 0;overflow:hidden;
+}
+.calc-head{
+  padding:14px 20px;background:var(--surface-2);border-bottom:1px solid var(--line);
+  display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;
+}
+.calc-head h3{margin:0;font-size:1rem}
+.calc-head .kicker{font-family:var(--mono);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--amber)}
+.calc-body{padding:20px}
+.field-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:.8rem;color:var(--text-2)}
+input[type=number],select{
+  background:var(--ground);border:1px solid var(--line);border-radius:7px;
+  color:var(--text);font-family:var(--mono);font-size:.92rem;padding:8px 10px;width:100%;
+  font-variant-numeric:tabular-nums;
+}
+input[type=number]:focus,select:focus{outline:2px solid var(--amber);outline-offset:1px;border-color:var(--amber)}
+input[type=range]{width:100%;accent-color:var(--amber)}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{
+  background:var(--ground);border:1px solid var(--line);color:var(--text-2);
+  border-radius:7px;padding:7px 13px;font-family:var(--sans);font-size:.85rem;cursor:pointer;
+}
+.seg button[aria-pressed=true]{background:var(--amber);border-color:var(--amber);color:#1A1206;font-weight:600}
+.seg button:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+.btn{
+  background:var(--amber);color:#1A1206;border:none;border-radius:8px;
+  padding:10px 20px;font-family:var(--sans);font-weight:600;font-size:.92rem;cursor:pointer;
+}
+.btn:hover{background:#FFC15E}
+.btn:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+.calc-out{border-top:1px solid var(--line);background:var(--surface-2);padding:20px}
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:14px;margin-bottom:4px}
+.stat{background:var(--ground);border:1px solid var(--line-soft);border-radius:9px;padding:12px 14px}
+.stat .k{font-size:.76rem;color:var(--muted);display:block;margin-bottom:4px}
+.stat .v{font-family:var(--mono);font-size:1.4rem;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums;line-height:1.2}
+.stat .v small{font-size:.6em;font-weight:400;color:var(--text-2);margin-left:3px}
+.stat.accent .v{color:var(--amber)}
+
+/* bar chart */
+.bars{display:flex;flex-direction:column;gap:7px;margin-top:6px}
+.bar-row{display:grid;grid-template-columns:7.5rem 1fr 6.5rem;align-items:center;gap:10px;font-size:.88rem}
+.bar-track{height:20px;background:var(--ground);border-radius:4px;position:relative;overflow:hidden}
+.bar-fill{height:100%;border-radius:0 4px 4px 0;background:var(--amber);min-width:2px}
+.bar-fill.neg{background:var(--bad)}
+.bar-val{font-family:var(--mono);text-align:right;font-variant-numeric:tabular-nums}
+.bar-name{color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+ul,ol{margin:0 0 16px;padding-left:1.25rem}
+li{margin-bottom:7px}
+li::marker{color:var(--amber)}
+code{font-family:var(--mono);font-size:.88em;background:var(--surface-2);padding:2px 6px;border-radius:4px;color:var(--mint)}
+.formula{
+  font-family:var(--mono);font-size:.9rem;background:var(--ground);border:1px solid var(--line);
+  border-radius:8px;padding:14px 18px;margin:18px 0;color:var(--text-2);overflow-x:auto;
+}
+.formula b{color:var(--amber);font-weight:500}
+hr{border:none;border-top:1px solid var(--line-soft);margin:34px 0}
+
+footer{padding:52px 0 72px;color:var(--muted);font-size:.88rem}
+footer a{color:var(--text-2)}
+.src{font-size:.84rem;line-height:1.7}
+
+@media (max-width:640px){
+  .bar-row{grid-template-columns:5.5rem 1fr 5rem;font-size:.8rem}
+  section{padding:46px 0}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.mono{font-family:var(--mono)}
+.unitseg{display:inline-flex;gap:2px;border:1px solid var(--line);border-radius:6px;overflow:hidden;vertical-align:middle;margin-top:5px}
+.unitseg button{background:var(--ground);border:none;color:var(--muted);font-family:var(--mono);font-size:.68rem;
+  padding:3px 7px;cursor:pointer;line-height:1.4}
+.unitseg button[aria-pressed=true]{background:var(--amber);color:#12100E;font-weight:600}
+.unitseg button:focus-visible{outline:2px solid var(--mint);outline-offset:-2px}
+.savebar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:11px 15px;margin:0 0 16px;
+  border:1px solid var(--line);border-radius:9px;background:var(--surface-2);font-size:.85rem;color:var(--text-2)}
+.savebar .dot{width:8px;height:8px;border-radius:50%;background:var(--good);flex:0 0 auto}
+.savebar b{color:var(--text);font-weight:600}
+.savebar button{background:var(--ground);border:1px solid var(--line);color:var(--text-2);
+  border-radius:7px;padding:5px 11px;font-family:var(--sans);font-size:.82rem;cursor:pointer}
+.savebar button:hover{color:var(--text);border-color:var(--amber)}
+.savebar .push{margin-left:auto}
+.pastebox{border:1px dashed var(--amber-deep);border-radius:10px;padding:14px 16px;background:rgba(167,139,250,.05)}
+.pastelabel{font-weight:600;color:var(--amber);font-size:.92rem}
+#paste{width:100%;margin-top:10px;background:var(--ground);border:1px solid var(--line);border-radius:8px;color:var(--text);
+  font-family:var(--mono);font-size:.85rem;padding:10px 12px;resize:vertical;min-height:96px}
+#paste:focus{outline:2px solid var(--amber);outline-offset:1px}
+.pastebox summary{cursor:pointer}
+.autobox{font-size:.88rem;color:var(--text-2);margin:0 0 12px}
+.autobox b{color:var(--text)}
+.srctag{font-size:.7rem;color:var(--muted);margin-left:4px}
+.pastemsg{margin:8px 0 0;font-size:.85rem;color:var(--text-2)}
+.outnote{margin:16px 0 0;font-size:.9rem;color:var(--text-2)}
+.delta{font-family:var(--mono);font-size:.74rem;margin-top:3px}
+.posbar{width:70px;height:6px;background:var(--ground);border-radius:3px;overflow:hidden;display:inline-block;vertical-align:middle;margin-right:6px}
+.posbar i{display:block;height:100%;background:var(--amber)}
+.badge{display:inline-block;font-size:.76rem;font-weight:600;padding:2px 8px;border-radius:999px;margin-right:4px}
+.badge.good{background:rgba(111,224,168,.15);color:var(--good)}
+.badge.wait{background:rgba(242,201,76,.14);color:var(--warn)}
+.badge.bad{background:rgba(255,138,122,.15);color:var(--bad)}
+.unitseg .um{opacity:.6;font-size:.9em}
+input.flash{outline:2px solid var(--good)!important;transition:outline .2s}
+td input[type=number]{padding:6px 8px}
+</style>
+<header class="masthead">
+  <div class="wrap col">
+    <p class="eyebrow">동글랜드 · 연금술사 도구</p>
+    <h1>룬 손익 계산기<span class="sub">시세 자동 반영 · 30일 추이 · 재료 원가 · 시간당 효율</span></h1>
+    <p class="lede">디스코드 <strong>#연금술사-변동상점</strong> 시세가 3시간마다 <strong>자동으로</strong> 들어오고 30일 추이도 함께 보여 줍니다. 지금 팔면 <strong>룬 1개에 얼마 남는지</strong>, 양조기를 돌리면 <strong>시간당 얼마 버는지</strong>가 바로 나옵니다.</p>
+    <div class="meta">
+      <span class="chip">기준 <b>2026.10.10</b></span>
+      <span class="chip">출처 <b>동글위키 + 디스코드</b></span>
+      <span class="chip">시세 <b>3시간마다 자동</b></span>
+      <span class="chip">입력값 <b>자동 저장</b></span>
+      <a class="chip" href="cook.html" style="text-decoration:none">요리사 계산기 <b>→</b></a>
+    </div>
+  </div>
+</header>
+
+<nav class="toc" aria-label="목차">
+  <div class="wrap">
+    <div class="toc-inner">
+      <a href="#s0"><span class="n">00</span>시세 추이</a>
+      <a href="#s1"><span class="n">01</span>시세와 손익</a>
+      <a href="#s2"><span class="n">02</span>재료 시세</a>
+      <a href="#s3"><span class="n">03</span>시간당 효율</a>
+      <a href="#s4"><span class="n">04</span>장보기 · 어결 vs 룬</a>
+      <a href="#s5"><span class="n">05</span>양조기 정리</a>
+      <a href="#s6"><span class="n">06</span>검증 노트</a>
+    </div>
+  </div>
+</nav>
+
+<!-- 00 시세 추이 (tracker.js 가 채움) -->
+<section id="s0" style="padding:28px 0 0;border-bottom:0">
+  <div class="wrap"><div id="trend"></div></div>
+</section>
+
+<!-- 01 -->
+<section id="s1">
+  <div class="wrap">
+    <div class="calc">
+      <div class="calc-head">
+        <span class="kicker">01</span>
+        <h3>변동상점 시세 → 룬 1개 손익</h3>
+        <span class="dim" style="font-size:.82rem">3시간마다 갱신 · 0·3·6·9·12·15·18·21시</span>
+      </div>
+      <div class="calc-body">
+        <div class="autobox" id="auto-msg">시세 불러오는 중…</div>
+        <details class="pastebox" id="paste-box">
+          <summary class="pastelabel">📋 자동 수집이 멈췄을 때 — 디스코드 시세 알림 직접 붙여넣기</summary>
+          <textarea id="paste" rows="5" placeholder="상점알리미 메시지를 복사해서 여기에 붙여넣으세요. 예)
+[성급룬 252~378]
+[룬 ㅣ 성급] | 275 → 308
+[힘룬 255~383]
+[룬 ㅣ 힘] | 356 → 374"></textarea>
+          <p id="paste-msg" class="pastemsg">붙여넣으면 아래 「현재가」 칸이 자동으로 채워집니다. 직접 고쳐 써도 됩니다.</p>
+        </details>
+
+        <div class="field-grid" style="margin-top:18px">
+          <div class="field">
+            <label>내 차수</label>
+            <div class="seg" id="tier-seg">
+              <button type="button" data-v="1" aria-pressed="true">1차</button>
+              <button type="button" data-v="2">2차</button>
+              <button type="button" data-v="3">3차</button>
+              <button type="button" data-v="4">4차</button>
+              <button type="button" data-v="5">5차</button>
+            </div>
+          </div>
+          <div class="field">
+            <label for="fee-sel">어디서 파나</label>
+            <select id="fee-sel">
+              <option value="0" selected>변동 룬 상점 · 수수료 없음</option>
+              <option value="0.03">유저 직거래 · 3%</option>
+              <option value="0.05">플리마켓 · 5%</option>
+              <option value="0.07">거래소 · 7%</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>재료 소모 가정</label>
+            <div class="seg" id="asm-seg">
+              <button type="button" data-v="a" aria-pressed="true">재료 1개 → 물병 3칸</button>
+              <button type="button" data-v="b">1대1</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="calc-out">
+        <div class="scroll" style="margin-top:0">
+          <table>
+            <thead><tr>
+              <th>룬</th><th class="num">현재가</th><th class="num">범위 위치</th>
+              <th class="num">재료비</th><th class="num">룬 1개 순이익</th><th class="num">손익분기</th>
+              <th>지금 팔까</th>
+            </tr></thead>
+            <tbody id="rune-rows"></tbody>
+          </table>
+        </div>
+        <div class="stat-row" style="margin-top:18px">
+          <div class="stat accent"><span class="k">지금 가장 남는 룬</span><span class="v" id="o-best">–</span></div>
+          <div class="stat"><span class="k">그 룬 1개 순이익</span><span class="v" id="o-bestp">–</span></div>
+          <div class="stat"><span class="k">재료비 중 보석 비중</span><span class="v" id="o-gemshare">–</span></div>
+          <div class="stat"><span class="k">다음 시세 갱신까지</span><span class="v" id="o-next">–</span></div>
+        </div>
+        <p id="o-note" class="outnote"></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap col">
+    <div class="note"><b>「지금 팔까」는 남은 갱신 횟수로 판단합니다.</b> 시세는 하한~상한 사이에서 매번 새로 뽑히니, 오늘 남은 갱신이 많을수록 기다렸다가 더 좋은 값을 만날 확률이 큽니다. 칸에 적힌 <b>기준선 이상이면 지금 파는 게 기대값상 유리</b>하고, 아래면 다음 갱신을 기다리는 쪽이 유리합니다. <span class="dim">룬 유통기한(3~16일)이 넉넉하다는 전제입니다.</span></div>
+    <div class="note warn"><b>디스코드 조언도 같이 보세요.</b> 「뉴비연금을 위한 질문정리」(Puleuns, 09.13) — <span class="dim">"고점이라 부르는 −10원 안으로 팔면 좋지만, 해산물+보석을 살 소지금을 계산하고 손해 안 보는 선에서 팔아 돈을 빠르게 순환시키는 게 수익적으로 더 좋다."</span> 기준선은 「기다릴 여유가 있을 때」의 답이고, 보석 살 돈이 급하면 <b>손익분기만 넘으면 파는 것</b>도 맞는 판단입니다.</div>
+  </div>
+</section>
+
+<!-- 02 -->
+<section id="s2">
+  <div class="wrap">
+    <div class="calc">
+      <div class="calc-head">
+        <span class="kicker">02</span>
+        <h3>재료 시세</h3>
+        <span class="dim" style="font-size:.82rem">사는 단위 그대로 넣으세요 — 계산은 알아서 개당으로 바꿉니다</span>
+      </div>
+      <div class="calc-body">
+        <div class="scroll" style="margin-top:0">
+          <table>
+            <thead><tr><th>재료</th><th>단위</th><th class="num">가격 (냥)</th><th class="num">개당</th><th>쓰이는 곳 · 비고</th></tr></thead>
+            <tbody id="mat-rows"></tbody>
+          </table>
+        </div>
+        <details class="fold">
+          <summary><b>연료 환산</b> 열기 — 발광석 → 블레이즈 막대 → 가루 → 양조 <span class="dim">기본값은 바닐라 기준</span></summary>
+          <div class="foldbody">
+            <div class="field-grid" style="margin-top:6px">
+              <div class="field"><label for="f-rod">발광석 1개 → 블레이즈 막대</label><input id="f-rod" type="number" min="0.01" step="0.5" value="1"></div>
+              <div class="field"><label for="f-powder">막대 1개 → 블레이즈 가루</label><input id="f-powder" type="number" min="0.01" step="1" value="2"></div>
+              <div class="field"><label for="f-brews">가루 1개 → 양조 횟수</label><input id="f-brews" type="number" min="1" step="1" value="20"></div>
+            </div>
+            <p id="fuel-note" class="outnote" style="margin-top:12px"></p>
+          </div>
+        </details>
+      </div>
+    </div>
+  </div>
+  <div class="wrap col">
+    <div class="note"><b>단위 이야기</b> — 동글랜드는 해산물·네더와트를 작업대에서 <b>9개 → 상자 1개</b>로 뭉쳐 거래하고, 보통 <b>상자 1세트(64상자 = 576개)</b>로 사고팝니다. 그래서 해산물·네더와트의 기본 단위를 「상자 세트」로 잡았습니다. 셜커는 <b>27칸 = 27세트</b>입니다.</div>
+    <div class="note warn"><b>기본값은 디스코드 시세표(09.13)입니다.</b> 해산물 1차 800 · 2·3차 2,000 · 4차 2,500(상자 세트당), 네더와트 650~750(상자 세트당) · 셜커 2만, 발광석 5,500~6,000(세트당) · 셜커 15~16만, 보석은 중개냥이 32만(셜커당). <b>한 달 전 값이니 지금 시세로 바꿔 넣으세요</b> — 한 번 넣으면 이 브라우저에 저장됩니다. 물병은 광장 연금술사 상점 가격을 확인하지 못해 0으로 두었습니다.</div>
+  </div>
+</section>
+
+<!-- 03 -->
+<section id="s3">
+  <div class="wrap col">
+    <div class="sec-head"><span class="sec-num">03</span><h2>시간당 효율</h2></div>
+    <div class="takeaway">
+      <span class="tag">구조</span>
+      <p>양조기 한 대는 물병 3칸을 동시에 끓입니다. 같은 물병을 <strong>네더와트 → 해산물 A → 해산물 B</strong>로 세 번 끓이면 정제 결정 3개, 즉 <strong>룬 1개분</strong>이 나옵니다. 그래서 <strong>양조기 N대를 한 바퀴(3단계) 돌리면 룬 N개</strong>입니다.</p>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="calc">
+      <div class="calc-head">
+        <span class="kicker">03</span>
+        <h3>한 바퀴 시간 → 시간당 룬 · 순이익</h3>
+        <span class="dim" style="font-size:.82rem">본인 동선 시간을 재서 넣으세요</span>
+      </div>
+      <div class="calc-body">
+        <div class="field-grid">
+          <div class="field"><label for="h-rune">만들 룬</label><select id="h-rune"></select></div>
+          <div class="field"><label for="h-n">양조기 대수 <span class="dim">(차수 최대값 자동)</span></label><input id="h-n" type="number" min="1" step="1" value="48"></div>
+          <div class="field"><label for="h-in1">양조기 1대 투입 시간 <span class="dim">(초 · 재료 넣고 지나가기)</span></label><input id="h-in1" type="number" min="0.05" step="0.05" value="0.4"></div>
+          <div class="field"><label for="h-brew">양조 시간 <span class="dim">(초 · 바닐라 20)</span></label><input id="h-brew" type="number" min="1" step="1" value="20"></div>
+          <div class="field"><label for="h-out1">양조기 1대 회수 시간 <span class="dim">(초 · 막대기로)</span></label><input id="h-out1" type="number" min="0" step="0.05" value="0.3"></div>
+          <div class="field"><label for="h-wb">연금술사 작업대 수</label><input id="h-wb" type="number" min="1" step="1" value="1"></div>
+          <div class="field">
+            <label>작업대 대기열</label>
+            <p class="dim" style="margin:6px 0 0;font-size:.84rem"><strong style="color:var(--text)">하나씩 처리</strong> — 룬 12초 · 작업대 1대 시간당 300개 <span class="pos">✔ 확인됨</span></p>
+          </div>
+          <div class="field"><label for="h-gemcap">시간당 보석 확보량 <span class="dim">(0 = 제한 없음)</span></label><input id="h-gemcap" type="number" min="0" step="16" value="0"></div>
+        </div>
+      </div>
+      <div class="calc-out">
+        <div class="stat-row">
+          <div class="stat accent"><span class="k">시간당 룬</span><span class="v" id="h-rate">–</span></div>
+          <div class="stat accent"><span class="k">시간당 순이익</span><span class="v" id="h-profit">–</span></div>
+          <div class="stat"><span class="k">한 바퀴 (룬 N개)</span><span class="v" id="h-cycle">–</span></div>
+          <div class="stat"><span class="k">병목</span><span class="v" id="h-neck" style="font-size:1rem">–</span></div>
+        </div>
+        <div class="stat-row" style="margin-top:14px">
+          <div class="stat"><span class="k">시간당 필요 자금</span><span class="v" id="h-cash">–</span></div>
+          <div class="stat"><span class="k">시간당 숙련도</span><span class="v" id="h-mast">–</span></div>
+          <div class="stat"><span class="k">시간당 경험치</span><span class="v" id="h-exp">–</span></div>
+          <div class="stat"><span class="k">시간당 기분 소모</span><span class="v" id="h-mood">–</span></div>
+        </div>
+        <div class="scroll" style="margin-top:18px">
+          <table>
+            <caption>한 시간 돌리려면 필요한 재료</caption>
+            <thead><tr><th>재료</th><th class="num">개수</th><th class="num">거래 단위로</th><th class="num">금액</th></tr></thead>
+            <tbody id="h-mats"></tbody>
+          </table>
+        </div>
+        <p id="h-note" class="outnote"></p>
+      </div>
+    </div>
+  </div>
+  <div class="wrap col">
+    <div class="note"><b>한 바퀴 시간은 이렇게 계산합니다.</b> 한 단계마다 「전체 양조기에 재료 넣는 시간(1대당 시간 × 대수)」과 「양조 시간」 중 <b>긴 쪽</b>만큼 걸립니다(넣는 동안 앞쪽 양조기는 이미 끓고 있으니까요). 그걸 세 번 하고 마지막에 회수합니다.</div>
+    <div class="note" style="font-family:var(--mono);font-size:.92rem;color:var(--text)">한 바퀴 = 3 × max(투입 시간, 양조 시간) + 회수 시간　→　룬 N개</div>
+    <div class="note warn"><b>투입 시간이 양조 시간보다 짧으면 기다리는 시간이 생깁니다.</b> 양조기가 적은 1차에서 흔한 상황이라, 이때는 <b>양조기를 더 깔아도 시간이 거의 안 늘어납니다</b> — 차수 한도(48/96/192/288)까지 채우는 게 이득입니다. 반대로 투입이 20초를 넘기면 그때부터는 <b>동선(이동 속도)이 곧 수입</b>입니다.</div>
+  </div>
+</section>
+
+<!-- 04 -->
+<section id="s4">
+  <div class="wrap">
+    <div class="calc">
+      <div class="calc-head">
+        <span class="kicker">04</span>
+        <h3>장보기 목록</h3>
+        <span class="dim" style="font-size:.82rem">룬 몇 개 만들 건지 넣으면 살 것을 거래 단위로</span>
+      </div>
+      <div class="calc-body">
+        <div class="field-grid">
+          <div class="field"><label for="b-rune">룬</label><select id="b-rune"></select></div>
+          <div class="field"><label for="b-qty">만들 개수</label><input id="b-qty" type="number" min="1" step="16" value="288"></div>
+        </div>
+      </div>
+      <div class="calc-out">
+        <div class="scroll" style="margin-top:0">
+          <table>
+            <thead><tr><th>재료</th><th class="num">필요 개수</th><th class="num">사야 할 양</th><th class="num">금액</th></tr></thead>
+            <tbody id="b-rows"></tbody>
+          </table>
+        </div>
+        <div class="stat-row" style="margin-top:16px">
+          <div class="stat"><span class="k">총 재료비</span><span class="v" id="b-cost">–</span></div>
+          <div class="stat"><span class="k">현재가로 판매하면</span><span class="v" id="b-rev">–</span></div>
+          <div class="stat accent"><span class="k">순이익</span><span class="v" id="b-profit">–</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="calc">
+      <div class="calc-head">
+        <span class="kicker">04-B</span>
+        <h3>어색한 결정(어결)만 만들어 팔면?</h3>
+        <span class="dim" style="font-size:.82rem">보석 없이 1단계만 돌리기 · 위 「시간당 효율」의 동선 시간을 그대로 씁니다</span>
+      </div>
+      <div class="calc-body">
+        <div class="field-grid">
+          <div class="field"><label for="aw-price">어결 판매가 <span class="dim">(개당 · 냥)</span></label><input id="aw-price" type="number" min="0" step="0.5" value="5"></div>
+          <div class="field"><label>연료비</label>
+            <div class="seg" id="awfuel-seg">
+              <button type="button" data-v="0" aria-pressed="true">빼고 계산</button>
+              <button type="button" data-v="1">넣고 계산</button>
+            </div>
+          </div>
+        </div>
+        <p class="dim" style="margin:12px 0 0;font-size:.85rem">어결 재료는 <strong>물병 3 + 네더와트 1 → 어결 3개</strong>입니다. 물병·네더와트 가격은 02 재료 시세 표의 값을 씁니다.</p>
+      </div>
+      <div class="calc-out">
+        <div class="stat-row">
+          <div class="stat"><span class="k">어결 1개 원가</span><span class="v" id="aw-unit">–</span></div>
+          <div class="stat"><span class="k">어결 시간당 개수</span><span class="v" id="aw-rate">–</span></div>
+          <div class="stat accent"><span class="k">어결 시간당 순이익</span><span class="v" id="aw-profit">–</span></div>
+          <div class="stat"><span class="k">한 바퀴</span><span class="v" id="aw-cycle">–</span></div>
+        </div>
+        <div class="scroll" style="margin-top:18px">
+          <table>
+            <caption>내 차수에서 열린 것끼리 시간당 비교 · 같은 양조기 대수 · 같은 동선 시간</caption>
+            <thead><tr><th>만드는 것</th><th class="num">시간당 개수</th><th class="num">개당 순이익</th><th class="num">시간당 순이익</th><th class="num">시간당 필요 자금</th><th>병목</th></tr></thead>
+            <tbody id="aw-rows"></tbody>
+          </table>
+        </div>
+        <p id="aw-note" class="outnote"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 05 -->
+<section id="s5">
+  <div class="wrap col">
+    <div class="sec-head"><span class="sec-num">05</span><h2>양조기 정리</h2></div>
+    <h3>재료가 흘러가는 길</h3>
+    <div class="scroll">
+      <table>
+        <thead><tr><th class="num">단계</th><th>장소</th><th>물병 칸 (아래 3칸)</th><th>재료 칸</th><th>결과</th></tr></thead>
+        <tbody>
+          <tr><td class="num">1</td><td>양조기</td><td>물병 ×3</td><td>네더와트</td><td>어색한 결정 ×3</td></tr>
+          <tr><td class="num">2</td><td>양조기</td><td>어색한 결정 ×3</td><td>해산물 A</td><td>결정ㅣ속성 ×3</td></tr>
+          <tr><td class="num">3</td><td>양조기</td><td>결정ㅣ속성 ×3</td><td>해산물 B</td><td>정제 결정 ×3</td></tr>
+          <tr class="hl"><td class="num">4</td><td>연금술사 작업대</td><td colspan="2">정제 결정 ×3 + 보석 ×1 <span class="dim">(16개 묶음: 48 + 16)</span></td><td><strong>룬 ×1</strong> · 12초</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>룬</th><th class="num">차수</th><th>해산물 A (2단계)</th><th>해산물 B (3단계)</th><th class="num">시세 범위</th></tr></thead>
+        <tbody>
+          <tr><td>🔥 화염저항</td><td class="num">1</td><td>굴</td><td>소라</td><td class="num">180~270</td></tr>
+          <tr><td>💧 호흡</td><td class="num">2</td><td>미역</td><td>키조개</td><td class="num">207~311</td></tr>
+          <tr><td>💨 신속</td><td class="num">3</td><td>전복</td><td>멍게</td><td class="num">228~342</td></tr>
+          <tr><td>⚡ 성급</td><td class="num">4</td><td>홍합</td><td><strong>해삼</strong></td><td class="num">252~378</td></tr>
+          <tr><td>💪 힘</td><td class="num">5</td><td>해삼</td><td><strong>홍합</strong></td><td class="num">255~383</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note warn"><b>성급과 힘은 홍합·해삼 순서가 반대</b>입니다. 성급은 홍합 → 해삼, 힘은 해삼 → 홍합.</div>
+
+    <h3>양조기에 대해 확인된 것</h3>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>항목</th><th>내용</th><th>출처</th></tr></thead>
+        <tbody>
+          <tr><td>설치 한도</td><td>1차 48 · 2차 96 · 3차 192(2청크) · 4·5차 288(3청크)</td><td class="dim">위키</td></tr>
+          <tr><td>사용 위치</td><td><strong>마을 채널에서만</strong> 열립니다. 룬 제작도 <strong>본인 마을</strong>에서만</td><td class="dim">위키</td></tr>
+          <tr><td>양조기 제작</td><td>블레이즈 막대 + 조약돌</td><td class="dim">디스코드</td></tr>
+          <tr><td>연료</td><td><strong>발광석을 화로에 구우면 블레이즈 막대</strong> → 가루로 쪼개 연료 칸에</td><td class="dim">디스코드 · 마을원</td></tr>
+          <tr><td>재료 칸</td><td>한 번에 64개까지 쌓입니다 — 미리보기에 「네더 와트 ×64」로 표시</td><td class="dim">위키</td></tr>
+          <tr><td>간편 양조</td><td>물병·물약을 들고 <strong>앉아서 좌클릭</strong> = 투입 · <strong>막대기</strong>를 들고 앉아서 클릭 = 회수</td><td class="dim">위키 · 09.26 패치</td></tr>
+          <tr><td>미리보기</td><td>양조기를 바라보면 재료/물병/연료 수량이 뜹니다 · <code>/양조정보</code>로 켜고 끔</td><td class="dim">위키</td></tr>
+          <tr><td>물병</td><td>광장 <strong>연금술사 상점</strong>에서 구매</td><td class="dim">디스코드</td></tr>
+          <tr><td>보석</td><td><strong>중개냥이</strong>에게 1시간마다 구매 가능 · 유저 거래보다 싸다는 평 · 10.07 패치로 매물 10만 개씩 추가</td><td class="dim">디스코드 · 패치노트</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>동선이 수입이다 — 「물양조」</h3>
+    <p>3차 이상 연금술사들은 양조기 사이에 <strong>물길</strong>을 내고 수영하며 지나가면서 투입·회수를 합니다. 디스코드에서 정리된 세팅은 이렇습니다.</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>항목</th><th>내용</th></tr></thead>
+        <tbody>
+          <tr><td>필수 인챈트</td><td>신속한 잠행 · 영혼 가속 · 신발 수선 <span class="dim">(영혼 가속이 신발 내구도를 빨리 깎아서)</span></td></tr>
+          <tr><td>커스텀 인챈트</td><td>기어 · 물의 호흡 <span class="dim">(생강 전에는 거북 등딱지 호흡 III로 한 사이클 버팀 · 다이아 모자 호흡 III는 부족)</span></td></tr>
+          <tr><td>목표 속도</td><td>신잠 + 영혼가속 + 민첩 + 영혼흙 + 기어 3 or 신호기 신속 II로 <strong>속도 13~15</strong></td></tr>
+          <tr><td>배치 예</td><td>1차 ㄷ자 5·6·5 × 3층 · 2차 ㅁ자 6층 <span class="dim">(2차까지는 물양조보다 ㅁ자 추천)</span></td></tr>
+          <tr><td>씹힘 방지</td><td>넣을 땐 <strong>물병을 들고</strong>, 뺄 땐 막대기 · 물약으로 넣으면 딜레이 없이 연속 투입 · 코너에서 고개를 들어 속도 2 감속</td></tr>
+          <tr><td>고수 기준</td><td>「생강 3강인데 <strong>한 셜커 물병을 1분 안</strong>에 못 넣으면 동선 문제」 <span class="dim">(레오, 09.11)</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="dim" style="font-size:.86rem">출처: 디스코드 #🔮연금술사 「뉴비연금을 위한 질문정리」(Puleuns · 09.13)와 댓글, 「모든 연금 3~4차 컨설팅」(레오 · 09.11).</p>
+  </div>
+</section>
+
+<!-- 06 -->
+<section id="s6">
+  <div class="wrap col">
+    <div class="sec-head"><span class="sec-num">06</span><h2>검증 노트</h2></div>
+    <h3>계산에 쓴 가정</h3>
+    <ul>
+      <li><strong>재료 1개가 물병 3칸을 한 번에</strong> 바꾼다고 봤습니다(바닐라 양조기 동작). 위키 미리보기에 재료 칸이 64개로 표시되는 것도 이 방식과 맞습니다. 다르면 위 「재료 소모 가정」을 1대1로 바꾸세요 — 해산물·와트가 3배가 됩니다.</li>
+      <li><strong>연료</strong>: 발광석 1 → 막대 1 → 가루 2 → 양조 20회(바닐라). 룬 1개는 양조 3회라 <strong>발광석 0.075개</strong>입니다. 서버 비율이 다르면 접이식 칸에서 바꾸세요.</li>
+      <li><strong>양조 시간 20초</strong>는 바닐라 값입니다. 서버 값은 확인하지 못했습니다.</li>
+      <li><strong>동선 시간</strong>은 양조기 1대당 초로 넣습니다(기본 투입 0.4초 · 회수 0.3초 = 예시값). 디스코드 고수 기준 「한 셜커 물병을 1분 안」은 1대당 약 0.1초입니다. 본인이 한 바퀴를 재서 대수로 나눠 넣으세요.</li>
+      <li><strong>작업대 대기열은 하나씩 처리</strong>됩니다(마을원 확인, 10.10). 룬 12초 → 작업대 1대당 <strong>시간당 300개</strong>가 상한입니다.</li>
+      <li><strong>기분</strong>은 양조 1회당 −0.004로 봤습니다(위키 「기분」 문서). 룬 작업대 소모량은 미표기라 넣지 않았습니다.</li>
+      <li><strong>「지금 팔까」 기준선</strong>은 시세가 범위 안에서 균등하게, 매번 독립적으로 뽑힌다는 가정의 최적 정지 규칙입니다.</li>
+    </ul>
+    <h3>확인이 필요한 항목</h3>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>항목</th><th>상태</th></tr></thead>
+        <tbody>
+          <tr class="hl"><td>물병 가격</td><td>광장 연금술사 상점 판매만 확인 · <strong>가격 미확인</strong> → 0으로 두었습니다</td></tr>
+          <tr><td>어색한 결정 판매가</td><td><strong>개당 5냥</strong> (마을원 확인, 10.10) · 재료는 물병 + 네더와트뿐</td></tr><tr><td>어결 연료</td><td>마을원은 「재료는 물병과 네더와트가 끝」 — 기본은 연료비 제외, 세그먼트로 넣을 수 있게 했습니다</td></tr>
+          <tr><td>양조 시간</td><td>바닐라 20초 가정 · 서버 값 미확인</td></tr>
+          <tr><td>작업대 동시 처리</td><td><strong>하나씩 처리 — 확인됨</strong>(10.10) · 작업대를 여러 대 둘 수 있는지는 미확인</td></tr>
+          <tr><td>발광석 → 막대 비율</td><td>「구우면 막대」만 확인 · 1:1 가정</td></tr>
+          <tr><td>보석 시세</td><td>중개냥이 셜커 32만(09.13) · 유저 거래가는 그보다 높다는 평 · <strong>매번 바뀝니다</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap col">
+    <p class="src">
+      <strong>출처</strong><br>
+      동글위키(<strong>dongle_land</strong>) — 연금술사 · 기분 <span class="dim">(2026.10.10 확인)</span><br>
+      디스코드 — <code>#연금술사-변동상점</code> 상점알리미(10.10) · <code>#🔮연금술사</code> 「뉴비연금을 위한 질문정리」 · 「모든 연금 3~4차 컨설팅」 · 「보석 가격 마지노선」 · <code>#📋패치노트</code>(09.26 · 10.07)
+    </p>
+    <p style="margin-top:20px">틀린 값이나 확인된 수치가 있으면 알려주세요. 계산기 기본값을 바로 고치겠습니다.</p>
+  </div>
+</footer>
+
+<script src="tracker.js"></script>
+<script>
+(function(){
+"use strict";
+var fmt=function(n,d){d=d||0;if(!isFinite(n))return '–';return n.toLocaleString('ko-KR',{minimumFractionDigits:d,maximumFractionDigits:d});};
+var $=function(id){return document.getElementById(id);};
+
+/* ===== 저장 ===== */
+var STORE_KEY='dongle-guide:runecalc:v1';
+var state=(function(){try{return JSON.parse(localStorage.getItem(STORE_KEY)||'{}')||{};}catch(e){return {};}})();
+state.vals=state.vals||{}; state.units=state.units||{}; state.segs=state.segs||{};
+var saveT=null;
+function persist(){ if(saveT)clearTimeout(saveT); saveT=setTimeout(function(){
+  try{localStorage.setItem(STORE_KEY,JSON.stringify(state));}catch(e){}
+  var m='<b>저장됨</b> · '+new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})+' · 이 브라우저에만 남습니다';
+  document.querySelectorAll('.save-msg').forEach(function(el){el.innerHTML=m;});
+},250); }
+
+/* ===== 데이터 ===== */
+var U_SEA=[{k:'ea',l:'개',m:1},{k:'box',l:'상자',m:9},{k:'boxset',l:'상자 세트',m:576}];
+var U_WART=[{k:'ea',l:'개',m:1},{k:'boxset',l:'상자 세트',m:576},{k:'shulker',l:'셜커',m:15552}];
+var U_STACK=[{k:'ea',l:'개',m:1},{k:'set',l:'세트',m:64},{k:'shulker',l:'셜커',m:1728}];
+var U_SMALL=[{k:'ea',l:'개',m:1},{k:'set',l:'세트',m:64}];
+var MATS=[
+  {id:'oyster', n:'굴',      units:U_SEA, def:'boxset', price:800,  note:'화염저항 2단계 · 1차'},
+  {id:'conch',  n:'소라',    units:U_SEA, def:'boxset', price:800,  note:'화염저항 3단계 · 1차'},
+  {id:'kelp',   n:'미역',    units:U_SEA, def:'boxset', price:2000, note:'호흡 2단계 · 2차'},
+  {id:'pen',    n:'키조개',  units:U_SEA, def:'boxset', price:2000, note:'호흡 3단계 · 2차'},
+  {id:'abalone',n:'전복',    units:U_SEA, def:'boxset', price:2000, note:'신속 2단계 · 3차'},
+  {id:'squirt', n:'멍게',    units:U_SEA, def:'boxset', price:2000, note:'신속 3단계 · 3차'},
+  {id:'mussel', n:'홍합',    units:U_SEA, def:'boxset', price:2500, note:'성급 2단계 · 힘 3단계 · 4차'},
+  {id:'cucum',  n:'해삼',    units:U_SEA, def:'boxset', price:2500, note:'성급 3단계 · 힘 2단계 · 4차'},
+  {id:'wart',   n:'네더와트', units:U_WART,def:'boxset', price:700,  note:'1단계 · 룬 1개당 1개 · 셜커 = 27세트'},
+  {id:'glow',   n:'발광석',  units:U_STACK,def:'set',    price:5800, note:'화로 → 블레이즈 막대 → 가루(연료)'},
+  {id:'gem',    n:'보석',    units:U_STACK,def:'shulker',price:320000, note:'룬 1개당 1개 · 5종 아무거나 · 중개냥이'},
+  {id:'bottle', n:'물병',    units:U_SMALL,def:'ea',     price:0,    note:'룬 1개당 3개 · 광장 연금술사 상점 · 가격 미확인'}
+];
+var MAT={}; MATS.forEach(function(m){MAT[m.id]=m;});
+var RUNES=[
+  {id:'fire',n:'화염저항',ic:'🔥',tier:1,lo:180,hi:270,a:'oyster', b:'conch', cur:255},
+  {id:'brth',n:'호흡',   ic:'💧',tier:2,lo:207,hi:311,a:'kelp',   b:'pen',   cur:281},
+  {id:'spd', n:'신속',   ic:'💨',tier:3,lo:228,hi:342,a:'abalone',b:'squirt',cur:314},
+  {id:'hst', n:'성급',   ic:'⚡',tier:4,lo:252,hi:378,a:'mussel', b:'cucum', cur:308},
+  {id:'str', n:'힘',     ic:'💪',tier:5,lo:255,hi:383,a:'cucum',  b:'mussel',cur:374}
+];
+var STANDS={1:48,2:96,3:192,4:288,5:288};
+var EXP_PER=2.98, MAST_PER=1.79, MOOD_PER_BREW=0.004, CRAFT_SEC=12;
+
+/* ===== 세그먼트 ===== */
+var seg={tier:'1',asm:'a',wb:'seq',awfuel:'0'};
+function bindSeg(id,key,cb){
+  var box=$(id);
+  var saved=state.segs[id];
+  box.querySelectorAll('button').forEach(function(b){
+    if(saved!==undefined) b.setAttribute('aria-pressed', String(b.getAttribute('data-v')===saved));
+    if(b.getAttribute('aria-pressed')==='true') seg[key]=b.getAttribute('data-v');
+    b.addEventListener('click',function(){
+      box.querySelectorAll('button').forEach(function(x){x.setAttribute('aria-pressed','false');});
+      b.setAttribute('aria-pressed','true'); seg[key]=b.getAttribute('data-v');
+      state.segs[id]=seg[key]; persist(); if(cb)cb(); calcAll();
+    });
+  });
+}
+
+/* ===== 재료 표 ===== */
+function unitOf(m){ var u=state.units[m.id]||m.def; for(var i=0;i<m.units.length;i++){ if(m.units[i].k===u) return m.units[i]; } return m.units[0]; }
+var mb=$('mat-rows');
+MATS.forEach(function(m){
+  var tr=document.createElement('tr');
+  var u=unitOf(m);
+  var segH='<span class="unitseg" data-mat="'+m.id+'">'+m.units.map(function(x){
+    return '<button type="button" data-u="'+x.k+'" aria-pressed="'+(x.k===u.k)+'">'+x.l+(x.m>1?' <span class="um">'+fmt(x.m)+'</span>':'')+'</button>';
+  }).join('')+'</span>';
+  var v=state.vals['p:'+m.id]; if(v===undefined) v=m.price;
+  tr.innerHTML='<td><strong>'+m.n+'</strong></td><td>'+segH+'</td>'+
+    '<td class="num"><input type="number" min="0" step="1" id="p-'+m.id+'" value="'+v+'" style="width:8.5rem"></td>'+
+    '<td class="num dim" id="pe-'+m.id+'">–</td>'+
+    '<td class="dim" style="white-space:normal;font-size:.84rem">'+m.note+'</td>';
+  mb.appendChild(tr);
+});
+mb.querySelectorAll('.unitseg').forEach(function(s){
+  var m=MAT[s.getAttribute('data-mat')];
+  s.querySelectorAll('button').forEach(function(b){
+    b.addEventListener('click',function(){
+      var oldU=unitOf(m), newK=b.getAttribute('data-u'); if(oldU.k===newK) return;
+      var newU=m.units.filter(function(x){return x.k===newK;})[0];
+      s.querySelectorAll('button').forEach(function(x){x.setAttribute('aria-pressed','false');});
+      b.setAttribute('aria-pressed','true');
+      var inp=$('p-'+m.id);
+      inp.value=Math.round((Number(inp.value)||0)*newU.m/oldU.m*100)/100;
+      state.units[m.id]=newK; state.vals['p:'+m.id]=Number(inp.value); persist(); calcAll();
+    });
+  });
+  $('p-'+m.id).addEventListener('input',function(){ state.vals['p:'+m.id]=Number(this.value)||0; persist(); calcAll(); });
+});
+function each(id){ var m=MAT[id]; return (Number($('p-'+id).value)||0)/unitOf(m).m; }
+
+/* ===== 룬 표 ===== */
+var rb=$('rune-rows');
+RUNES.forEach(function(r){
+  var tr=document.createElement('tr'); tr.id='row-'+r.id;
+  var v=state.vals['c:'+r.id]; if(v===undefined) v=r.cur;
+  tr.innerHTML='<td>'+r.ic+' <strong>'+r.n+'</strong><span class="tierpill">'+r.tier+'차</span><br><span class="dim" style="font-size:.78rem" id="rg-'+r.id+'">'+r.lo+'~'+r.hi+'</span></td>'+
+    '<td class="num"><input type="number" min="0" step="1" id="c-'+r.id+'" value="'+v+'" style="width:6rem"><div class="delta" id="d-'+r.id+'"></div></td>'+
+    '<td class="num" id="pos-'+r.id+'">–</td><td class="num" id="cost-'+r.id+'">–</td>'+
+    '<td class="num" id="pf-'+r.id+'">–</td><td class="num" id="be-'+r.id+'">–</td><td id="vd-'+r.id+'">–</td>';
+  rb.appendChild(tr);
+  $('c-'+r.id).addEventListener('input',function(){ state.vals['c:'+r.id]=Number(this.value)||0; state.vals['cAt:'+r.id]=Date.now(); $('d-'+r.id).innerHTML='<span class="srctag">직접 입력</span>'; persist(); calcAll(); });
+});
+['h-rune','b-rune'].forEach(function(sid){
+  var s=$(sid); RUNES.forEach(function(r){ var o=document.createElement('option'); o.value=r.id; o.textContent=r.ic+' '+r.n+'룬 ('+r.tier+'차)'; s.appendChild(o); });
+});
+function runeById(id){ for(var i=0;i<RUNES.length;i++) if(RUNES[i].id===id) return RUNES[i]; return RUNES[0]; }
+
+/* ===== 원가 ===== */
+function glowPerBrew(){ var rod=Number($('f-rod').value)||1, pw=Number($('f-powder').value)||2, br=Number($('f-brews').value)||20; return 1/(rod*pw*br); }
+function recipe(r){
+  var k=(seg.asm==='a')?1:3;
+  var q={bottle:3,wart:k,gem:1,glow:3*glowPerBrew()}; q[r.a]=(q[r.a]||0)+k; q[r.b]=(q[r.b]||0)+k; return q;
+}
+function costOf(r){ var q=recipe(r), c=0, parts={}; for(var id in q){ if(Object.prototype.hasOwnProperty.call(q,id)){ parts[id]=q[id]*each(id); c+=parts[id]; } } return {total:c,parts:parts,q:q}; }
+function fee(){ return Number($('fee-sel').value)||0; }
+function priceOf(r){ return Number($('c-'+r.id).value)||0; }
+
+/* ===== 갱신 시각 / 기준선 ===== */
+function refreshesLeft(){ var h=new Date().getHours(); return 7-Math.floor(h/3); }
+function wNorm(n){ if(n<=1) return 0.5; var v=0.5; for(var i=2;i<=n;i++) v=(1+v*v)/2; return v; }
+function nextRefresh(){ var d=new Date(), n=new Date(d); n.setMinutes(0,0,0); n.setHours((Math.floor(d.getHours()/3)+1)*3); return Math.max(0,Math.round((n-d)/60000)); }
+
+/* ===== 메인 계산 ===== */
+function calcAll(){
+  var tier=Number(seg.tier), f=fee(), left=refreshesLeft();
+  var best=null;
+  RUNES.forEach(function(r){
+    var c=costOf(r), p=priceOf(r), net=p*(1-f), pf=net-c.total, be=c.total/(1-f);
+    var open=tier>=r.tier;
+    $('row-'+r.id).className=open?'':'off';
+    var pos=(p-r.lo)/(r.hi-r.lo)*100;
+    $('pos-'+r.id).innerHTML='<div class="posbar"><i style="width:'+Math.max(0,Math.min(100,pos))+'%"></i></div><span class="dim" style="font-size:.78rem">'+fmt(pos)+'%</span>';
+    $('cost-'+r.id).textContent=fmt(c.total,1);
+    $('pf-'+r.id).innerHTML='<strong class="'+(pf>=0?'pos':'neg')+'">'+(pf>=0?'+':'')+fmt(pf,1)+'</strong>';
+    $('be-'+r.id).textContent=fmt(Math.ceil(be));
+    var thr=r.lo+(r.hi-r.lo)*wNorm(left);
+    var vd;
+    if(pf<0) vd='<span class="badge bad">손해</span> <span class="dim">'+fmt(Math.ceil(be))+' 이상에서</span>';
+    else if(left<=0||p>=thr) vd='<span class="badge good">지금 판매</span> <span class="dim">기준 '+fmt(Math.round(thr))+'</span>';
+    else vd='<span class="badge wait">기다리기</span> <span class="dim">기준 '+fmt(Math.round(thr))+'</span>';
+    if(r.lo<be) vd+='<div class="dim" style="font-size:.76rem;margin-top:3px">하한 '+r.lo+'이면 손해</div>';
+    $('vd-'+r.id).innerHTML=vd;
+    if(open&&(!best||pf>best.pf)) best={r:r,pf:pf,c:c};
+  });
+  if(best){
+    $('o-best').innerHTML=best.r.ic+' '+best.r.n;
+    $('o-bestp').innerHTML='<span class="'+(best.pf>=0?'pos':'neg')+'">'+(best.pf>=0?'+':'')+fmt(best.pf,1)+'</span><small>냥</small>';
+    $('o-gemshare').innerHTML=fmt(best.c.parts.gem/best.c.total*100)+'<small>%</small>';
+  }
+  $('o-next').innerHTML=fmt(nextRefresh())+'<small>분 · 남은 '+left+'회</small>';
+  var note='';
+  if(best){
+    note='보석이 재료비의 <strong>'+fmt(best.c.parts.gem/best.c.total*100)+'%</strong>입니다. 룬마다 보석이 1개씩 들어가니 <strong>룬 1개 순이익 = 보석 1개로 버는 돈</strong>이고, 보석이 모자랄 땐 <strong>순이익이 큰 룬부터</strong> 만드는 게 맞습니다. ';
+    note+='해산물·와트·연료는 다 합쳐도 룬 1개에 <strong>'+fmt(best.c.total-best.c.parts.gem,1)+'냥</strong>입니다.';
+  }
+  $('o-note').innerHTML=note;
+
+  /* 재료 개당 */
+  MATS.forEach(function(m){ $('pe-'+m.id).textContent=fmt(each(m.id),2); });
+  var g=glowPerBrew();
+  $('fuel-note').innerHTML='양조 1회 = 발광석 <strong>'+fmt(g,4)+'개</strong> = <strong>'+fmt(g*each('glow'),2)+'냥</strong> · 룬 1개(양조 3회) = <strong>'+fmt(3*g*each('glow'),2)+'냥</strong>';
+
+  calcHour(); calcBuy();
+}
+
+function lineFor(id,qty){
+  var m=MAT[id], u=unitOf(m);
+  var big=m.units[m.units.length-1];
+  var txt=(u.m>1?fmt(qty/u.m,2)+' '+u.l:fmt(Math.ceil(qty))+'개');
+  if(big.m>u.m && qty>=big.m) txt+=' <span class="dim">(≈ '+fmt(qty/big.m,2)+' '+big.l+')</span>';
+  return txt;
+}
+
+function calcHour(){
+  var r=runeById($('h-rune').value), N=Math.max(1,Number($('h-n').value)||1);
+  var tin=Math.max(1,(Number($('h-in1').value)||0.4)*N), tb=Math.max(1,Number($('h-brew').value)||20), tout=Math.max(0,(Number($('h-out1').value)||0)*N);
+  var wb=Math.max(1,Number($('h-wb').value)||1), cap=Math.max(0,Number($('h-gemcap').value)||0);
+  var cycle=3*Math.max(tin,tb)+tout;
+  var brewRate=N*3600/cycle;
+  var craftRate=wb*3600/CRAFT_SEC;
+  var rate=Math.min(brewRate,craftRate), neck=(brewRate<=craftRate)?'양조 동선':'작업대';
+  if(cap>0&&cap<rate){ rate=cap; neck='보석 확보량'; }
+  var c=costOf(r), pf=priceOf(r)*(1-fee())-c.total;
+  $('h-rate').innerHTML=fmt(rate)+'<small>개</small>';
+  $('h-profit').innerHTML='<span class="'+(pf>=0?'pos':'neg')+'">'+fmt(rate*pf)+'</span><small>냥</small>';
+  $('h-cycle').innerHTML=fmt(cycle)+'<small>초 · '+fmt(N)+'개</small><div class="dim" style="font-size:.72rem;font-weight:400;margin-top:4px">투입 '+fmt(tin)+'초 · 회수 '+fmt(tout)+'초</div>';
+  $('h-neck').textContent=neck;
+  $('h-cash').innerHTML=fmt(rate*c.total)+'<small>냥</small>';
+  $('h-mast').innerHTML=fmt(rate*MAST_PER)+'<small></small>';
+  $('h-exp').innerHTML=fmt(rate*EXP_PER)+'<small></small>';
+  $('h-mood').innerHTML='−'+fmt(rate*3*MOOD_PER_BREW,1)+'<small>(가정)</small>';
+  var tb_=$('h-mats'); tb_.innerHTML='';
+  var order=[r.a,r.b,'wart','gem','glow','bottle'];
+  order.forEach(function(id){ var q=c.q[id]*rate; if(!q) return;
+    var tr=document.createElement('tr');
+    tr.innerHTML='<td>'+MAT[id].n+'</td><td class="num">'+fmt(Math.ceil(q))+'</td><td class="num">'+lineFor(id,q)+'</td><td class="num">'+fmt(q*each(id))+'</td>';
+    tb_.appendChild(tr);
+  });
+  var msg='';
+  if(tin<tb) msg+='한 단계 투입('+tin+'초)이 양조 시간('+tb+'초)보다 짧아서 <strong>매 단계 '+(tb-tin)+'초씩 기다립니다.</strong> 양조기를 '+fmt(Math.floor(N*tb/tin))+'대까지 늘려도 한 바퀴 시간이 거의 같습니다. ';
+  if(neck==='작업대') msg+='<strong>작업대가 병목</strong>입니다 — 양조기는 시간당 '+fmt(brewRate)+'개분을 만드는데 작업대가 '+fmt(craftRate)+'개밖에 못 찍습니다. 작업대를 늘리거나 대기열이 실제로 동시에 도는지 확인해 보세요. ';
+  if(neck==='양조 동선') msg+='양조 동선이 병목입니다 — 투입 시간을 줄이는 것(속도·배치)이 곧 수입입니다. ';
+  if(neck==='보석 확보량') msg+='<strong>보석이 병목</strong>입니다 — 이 경우엔 시간보다 <strong>보석 1개당 이익이 큰 룬</strong>을 고르는 게 전부입니다. ';
+  if(pf<0) msg+='<strong class="neg">지금 시세로는 이 룬이 손해입니다.</strong> ';
+  $('h-note').innerHTML=msg;
+  calcAw(cycle,tin,tb,tout,N);
+}
+
+function hourOf(r,N,tin,tb,tout,wb,cap){
+  var cycle=3*Math.max(tin,tb)+tout, brewRate=N*3600/cycle, craftRate=wb*3600/CRAFT_SEC;
+  var rate=Math.min(brewRate,craftRate), neck=(brewRate<=craftRate)?'양조 동선':'작업대';
+  if(cap>0&&cap<rate){ rate=cap; neck='보석 확보량'; }
+  var c=costOf(r), pf=priceOf(r)*(1-fee())-c.total;
+  return {rate:rate,pf:pf,cash:rate*c.total,neck:neck};
+}
+function calcAw(cycle,tin,tb,tout,N){
+  var p=Number($('aw-price').value)||0;
+  var wb=Math.max(1,Number($('h-wb').value)||1), cap=Math.max(0,Number($('h-gemcap').value)||0);
+  var k=(seg.asm==='a')?1:3;
+  var fuel=(seg.awfuel==='1')?glowPerBrew()*each('glow'):0;
+  var unitCost=(3*each('bottle')+k*each('wart')+fuel)/3;
+  var cyc=Math.max(tin,tb)+tout, rate=N*3*3600/cyc, per=p*(1-fee())-unitCost, pf=per*rate;
+  $('aw-unit').innerHTML=fmt(unitCost,2)+'<small>냥</small>';
+  $('aw-rate').innerHTML=fmt(rate)+'<small>개</small>';
+  $('aw-profit').innerHTML='<span class="'+(pf>=0?'pos':'neg')+'">'+fmt(pf)+'</span><small>냥</small>';
+  $('aw-cycle').innerHTML=fmt(cyc)+'<small>초 · '+fmt(N*3)+'개</small>';
+  var rows=[{n:'🧪 어색한 결정',rate:rate,pf:per,hr:pf,cash:rate*unitCost,neck:'양조 동선',aw:1}];
+  var tier=Number(seg.tier);
+  RUNES.forEach(function(r){ if(r.tier>tier) return; var h=hourOf(r,N,tin,tb,tout,wb,cap);
+    rows.push({n:r.ic+' '+r.n+'룬',rate:h.rate,pf:h.pf,hr:h.rate*h.pf,cash:h.cash,neck:h.neck}); });
+  var cycR=3*Math.max(tin,tb)+tout, brewR=N*3600/cycR, mixBest=null;
+  if(pf>0) rows.slice(1).forEach(function(o){
+    var f=Math.min(1,o.rate/brewR), hr=o.hr+(1-f)*pf;
+    if(o.hr>0&&(!mixBest||hr>mixBest.hr)) mixBest={n:o.n+' + 🧪 어결',rate:o.rate,rate2:(1-f)*rate,pf:null,hr:hr,cash:o.cash+(1-f)*rate*unitCost,neck:'룬 '+fmt(f*100)+'% · 어결 '+fmt((1-f)*100)+'% 시간',mix:1,f:f};
+  });
+  if(mixBest) rows.push(mixBest);
+  var best=rows.slice().sort(function(a,b){return b.hr-a.hr;})[0];
+  var tb_=$('aw-rows'); tb_.innerHTML='';
+  rows.forEach(function(o){
+    var tr=document.createElement('tr'); if(o===best) tr.className='hl';
+    tr.innerHTML='<td>'+(o.mix?'<strong>섞기</strong> ':'')+o.n+(o===best?' <span class="badge good">최고</span>':'')+'</td>'+
+      '<td class="num">'+(o.mix?fmt(o.rate)+' + '+fmt(o.rate2):fmt(o.rate))+'</td>'+
+      '<td class="num">'+(o.mix?'<span class="dim">—</span>':(o.pf>=0?'+':'')+fmt(o.pf,o.aw?2:1))+'</td>'+
+      '<td class="num"><strong class="'+(o.hr>=0?'pos':'neg')+'">'+fmt(o.hr)+'</strong></td>'+
+      '<td class="num">'+fmt(o.cash)+'</td><td class="dim">'+o.neck+'</td>';
+    tb_.appendChild(tr);
+  });
+  var runeBest=rows.slice(1).filter(function(o){return !o.mix;}).sort(function(a,b){return b.hr-a.hr;})[0];
+  var msg='';
+  if(p<=0){ msg='어결 판매가를 넣으면 비교합니다.'; }
+  else if(runeBest){
+    var d=pf-runeBest.hr;
+    msg=(d>=0?'<strong>지금 조건에서는 어결이 '+runeBest.n+'보다 시간당 '+fmt(d)+'냥 더 남습니다.</strong> ':'<strong>지금 조건에서는 '+runeBest.n+'이 어결보다 시간당 '+fmt(-d)+'냥 더 남습니다.</strong> ');
+    msg+='어결은 한 바퀴가 <strong>1단계</strong>라 룬(3단계)보다 같은 시간에 양조기를 세 번 더 돌리고, <strong>보석과 작업대가 필요 없어서</strong> 둘 다 병목이 되지 않습니다. 대신 개당 마진이 '+fmt(per,2)+'냥으로 얇아서 <strong>동선이 빠를수록, 차수가 낮을수록</strong> 유리합니다. ';
+    var be=runeBest.rate>0?(runeBest.hr/rate+unitCost)/(1-fee()):0;
+    msg+='어결이 '+runeBest.n+'을 이기려면 개당 <strong>'+fmt(be,2)+'냥</strong> 이상이어야 합니다.';
+    if(mixBest) msg+='<br><br><strong>그런데 둘 중 하나만 고를 필요가 없습니다.</strong> 작업대는 하나씩 처리라 시간당 '+fmt(mixBest.rate)+'개만 찍으니, 룬 양조는 동선 시간의 <strong>'+fmt(mixBest.f*100)+'%</strong>만 써도 작업대가 꽉 찹니다. 남는 <strong>'+fmt((1-mixBest.f)*100)+'%</strong> 시간에 어결을 돌리면 시간당 <strong class="pos">'+fmt(mixBest.hr)+'냥</strong> — 어결만 할 때보다 <strong>'+fmt(mixBest.hr-pf)+'냥</strong> 더 남습니다. 작업대에 룬 묶음을 걸어 두고, 그 사이 양조기는 어결을 돌리는 식입니다.';
+    if(runeBest.neck==='보석 확보량') msg+=' 룬은 보석 확보량에 막혀 있습니다 — 보석이 모자라는 시간에는 남는 양조기로 어결을 돌리는 조합도 가능합니다.';
+  }
+  if(seg.awfuel!=='1') msg+=' <span class="dim">연료비를 넣으면 어결 1개당 '+fmt(glowPerBrew()*each('glow')/3,2)+'냥이 더 듭니다.</span>';
+  $('aw-note').innerHTML=msg;
+}
+
+function calcBuy(){
+  var r=runeById($('b-rune').value), n=Math.max(1,Number($('b-qty').value)||1);
+  var c=costOf(r), tb_=$('b-rows'); tb_.innerHTML='';
+  [r.a,r.b,'wart','gem','glow','bottle'].forEach(function(id){ var q=c.q[id]*n; if(!q) return;
+    var tr=document.createElement('tr');
+    tr.innerHTML='<td>'+MAT[id].n+'</td><td class="num">'+fmt(Math.ceil(q))+'</td><td class="num">'+lineFor(id,q)+'</td><td class="num">'+fmt(q*each(id))+'</td>';
+    tb_.appendChild(tr);
+  });
+  var rev=priceOf(r)*(1-fee())*n, cost=c.total*n;
+  $('b-cost').innerHTML=fmt(cost)+'<small>냥</small>';
+  $('b-rev').innerHTML=fmt(rev)+'<small>냥</small>';
+  $('b-profit').innerHTML='<span class="'+(rev-cost>=0?'pos':'neg')+'">'+(rev-cost>=0?'+':'')+fmt(rev-cost)+'</span><small>냥</small>';
+}
+
+/* ===== 붙여넣기 ===== */
+var KW=[['화염','fire'],['호흡','brth'],['신속','spd'],['성급','hst'],['힘','str']];
+function parsePaste(){
+  var raw=$('paste').value; if(!raw.trim()) return;
+  var re=/\[\s*룬\s*[ㅣ|lI]?\s*([^\]]+?)\s*\]\s*\|\s*(\d+)\s*(?:→|->|>)\s*(\d+)/g, m, hit={};
+  while((m=re.exec(raw))!==null){
+    var name=m[1].replace(/\s+/g,'');
+    KW.forEach(function(kw){ if(name.indexOf(kw[0])>=0) hit[kw[1]]={prev:+m[2],now:+m[3]}; });
+  }
+  if(!Object.keys(hit).length){ /* 대체: "신속 290" 같은 줄 */
+    raw.split(/\n/).forEach(function(line){
+      var n=line.match(/(\d{2,3})\s*$/)||line.match(/(\d{2,3})/); if(!n) return;
+      if(/\d+\s*~\s*\d+/.test(line)) return;
+      KW.forEach(function(kw){ if(line.indexOf(kw[0])>=0) hit[kw[1]]={prev:0,now:+n[1]}; });
+    });
+  }
+  var ids=Object.keys(hit);
+  if(!ids.length){ $('paste-msg').innerHTML='<span class="neg">룬 시세를 찾지 못했습니다.</span> 「[룬 ㅣ 성급] | 275 → 308」 형식이 들어 있는지 확인해 주세요.'; return; }
+  ids.forEach(function(id){
+    var h=hit[id], el=$('c-'+id); el.value=h.now; state.vals['c:'+id]=h.now; state.vals['cAt:'+id]=Date.now();
+    var d=h.prev?h.now-h.prev:0;
+    $('d-'+id).innerHTML=h.prev?('<span class="'+(d>=0?'pos':'neg')+'">'+(d>=0?'▲':'▼')+Math.abs(d)+'</span> <span class="dim">'+h.prev+'→</span>'):'';
+    el.classList.add('flash'); setTimeout(function(){el.classList.remove('flash');},900);
+  });
+  var tm=raw.match(/(오전|오후)\s*(\d{1,2}):(\d{2})/g);
+  var when=tm?tm[tm.length-1]:new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+  state.vals.pasteAt=when; persist();
+  $('paste-msg').innerHTML='✅ <strong>'+ids.length+'종</strong> 반영 · '+when+' 기준';
+  calcAll();
+}
+$('paste').addEventListener('input',parsePaste);
+$('paste').addEventListener('paste',function(){ setTimeout(parsePaste,0); });
+
+/* ===== 나머지 입력 저장 ===== */
+['fee-sel','h-rune','h-n','h-in1','h-brew','h-out1','h-wb','h-gemcap','b-rune','b-qty','aw-price','f-rod','f-powder','f-brews'].forEach(function(id){
+  var el=$(id), v=state.vals['#'+id];
+  if(v!==undefined&&v!==null&&v!=='') el.value=v;
+  var h=function(){ state.vals['#'+id]=el.value; persist(); calcAll(); };
+  el.addEventListener('input',h); el.addEventListener('change',h);
+});
+bindSeg('asm-seg','asm'); bindSeg('awfuel-seg','awfuel');
+bindSeg('tier-seg','tier',function(){
+  var t=Number(seg.tier); $('h-n').value=STANDS[t]; state.vals['#h-n']=$('h-n').value;
+  var bestOpen=RUNES.filter(function(r){return r.tier<=t;}).pop();
+  $('h-rune').value=bestOpen.id; $('b-rune').value=bestOpen.id;
+  state.vals['#h-rune']=bestOpen.id; state.vals['#b-rune']=bestOpen.id; persist();
+});
+if(state.vals['#h-rune']===undefined){ var t0=Number(seg.tier); $('h-rune').value=RUNES.filter(function(r){return r.tier<=t0;}).pop().id; $('b-rune').value=$('h-rune').value; }
+if(state.vals.pasteAt) $('paste-msg').innerHTML='저장된 시세 · '+state.vals.pasteAt+' 기준 — 새 알림을 붙여넣으면 바뀝니다.';
+
+/* 저장 바 */
+document.querySelectorAll('.calc-body').forEach(function(body,i){
+  if(i>1) return;
+  var bar=document.createElement('div'); bar.className='savebar';
+  bar.innerHTML='<span class="dot"></span><span class="save-msg">입력한 값은 <b>이 브라우저에 자동 저장</b>됩니다</span><button type="button" class="push reset-btn">기본값으로 되돌리기</button>';
+  body.insertBefore(bar,body.firstChild);
+});
+document.querySelectorAll('.reset-btn').forEach(function(b){ b.addEventListener('click',function(){ try{localStorage.removeItem(STORE_KEY);}catch(e){} location.reload(); }); });
+
+/* ===== 자동 시세 (tracker.js) ===== */
+/* 규칙: 수집된 최신 시세가 「직접 고친 시각」보다 새로우면 현재가 칸을 자동으로 채운다.
+   직접 고친 값은 다음 갱신(3시간 뒤)이 들어올 때까지 그대로 둔다. */
+var NAME2ID={'화염저항':'fire','호흡':'brth','신속':'spd','성급':'hst','힘':'str'};
+function applyAuto(info){
+  if(!info){ $('auto-msg').innerHTML='<span class="neg">자동 시세를 불러오지 못했습니다</span> — 아래 붙여넣기로 넣어 주세요.'; $('paste-box').open=true; return; }
+  var auto=0, manual=0;
+  info.items.forEach(function(it){
+    var id=NAME2ID[it.key]; if(!id||it.price==null) return;
+    var r=runeById(id);
+    if(it.lo!=null){ r.lo=it.lo; r.hi=it.hi; $('rg-'+id).textContent=it.lo+'~'+it.hi; }
+    if((state.vals['cAt:'+id]||0)>it.t*1000){ manual++; return; }
+    var el=$('c-'+id), changed=Number(el.value)!==it.price;
+    el.value=it.price; state.vals['c:'+id]=it.price;
+    var d=it.prev!=null?it.price-it.prev:null;
+    $('d-'+id).innerHTML=(d!=null?'<span class="'+(d>=0?'pos':'neg')+'">'+(d===0?'±0':(d>0?'▲':'▼')+Math.abs(d))+'</span> <span class="dim">'+it.prev+'→</span>':'')+'<span class="srctag">자동</span>';
+    if(changed){ el.classList.add('flash'); setTimeout(function(){el.classList.remove('flash');},900); }
+    auto++;
+  });
+  var when=DongleTracker.timeLabel(info.latest);
+  $('auto-msg').innerHTML='⚡ 현재가 <b>'+auto+'종 자동 반영</b> · '+when+' 시세'+(manual?' · 직접 고친 '+manual+'종은 다음 갱신까지 유지':'')+
+    (info.stale?' · <span class="neg">수집이 늦어지고 있어요</span>':'');
+  if(info.stale) $('paste-box').open=true;
+  persist(); calcAll();
+}
+if(window.DongleTracker){
+  DongleTracker.mount($('trend'),{
+    shop:'alch', title:'룬 시세 추이', groupTitles:false,
+    order:['화염저항','호흡','신속','성급','힘'],
+    icon:function(it){ var id=NAME2ID[it.key]; return id?runeById(id).ic:'🧪'; },
+    /* 처음엔 내 차수에서 열린 가장 높은 룬을 보여 줌 */
+    defaultSel:function(items){ var t=Number(seg.tier), best=null; items.forEach(function(it){ var id=NAME2ID[it.key]; if(id&&runeById(id).tier<=t) best=it.key; }); return best; },
+    onData:applyAuto
+  });
+}else{ $('auto-msg').textContent='tracker.js 파일이 없어 자동 시세를 쓸 수 없습니다 — 아래 붙여넣기를 써 주세요.'; }
+
+calcAll();
+setInterval(function(){ $('o-next').innerHTML=fmt(nextRefresh())+'<small>분 · 남은 '+refreshesLeft()+'회</small>'; },30000);
+})();
+</script>
+
+
+</body></html>

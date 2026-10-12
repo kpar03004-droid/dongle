@@ -1,0 +1,507 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>요리 손익 계산기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ground:#12181F;
+  --surface:#1B2430;
+  --surface-2:#232F3D;
+  --surface-3:#2C3A4A;
+  --line:#33424F;
+  --line-soft:#28353F;
+  --text:#F1F5F7;
+  --text-2:#AEBFCB;
+  --muted:#7B8D9C;
+  --amber:#A78BFA;
+  --amber-deep:#7C5CD6;
+  --mint:#5EEAD4;
+  --good:#6FE0A8;
+  --bad:#FF8A7A;
+  --warn:#F2C94C;
+  --violet:#A98BE0;
+  --sans:"IBM Plex Sans KR",system-ui,-apple-system,"Malgun Gothic",sans-serif;
+  --display:"Black Han Sans","IBM Plex Sans KR",system-ui,sans-serif;
+  --mono:"IBM Plex Mono","IBM Plex Sans KR",ui-monospace,monospace;
+  --measure:44rem;
+  --wide:68rem;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--ground);
+  color:var(--text);
+  font-family:var(--sans);
+  font-weight:400;
+  font-size:16px;
+  line-height:1.75;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:var(--wide);margin:0 auto;padding:0 20px}
+.col{max-width:var(--measure);margin-left:auto;margin-right:auto}
+
+/* ---------- header ---------- */
+.masthead{
+  border-bottom:1px solid var(--line-soft);
+  background:
+    radial-gradient(70rem 24rem at 50% -8rem, rgba(245,176,65,.14), transparent 70%),
+    var(--ground);
+  padding:64px 0 44px;
+}
+.eyebrow{
+  font-family:var(--mono);
+  font-size:.75rem;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color:var(--amber);
+  margin:0 0 14px;
+}
+h1{
+  font-family:var(--display);
+  font-weight:400;
+  font-size:clamp(2.4rem,7vw,4rem);
+  line-height:1.08;
+  letter-spacing:-.01em;
+  margin:0 0 16px;
+  text-wrap:balance;
+}
+h1 .sub{display:block;color:var(--amber);font-size:.44em;letter-spacing:.02em;margin-top:14px}
+.lede{font-size:1.06rem;color:var(--text-2);margin:0 0 26px;max-width:38rem;text-wrap:pretty}
+.meta{display:flex;flex-wrap:wrap;gap:8px}
+.chip{
+  font-family:var(--mono);font-size:.75rem;
+  border:1px solid var(--line);border-radius:999px;
+  padding:5px 12px;color:var(--text-2);background:var(--surface);
+}
+.chip b{color:var(--text);font-weight:500}
+
+/* ---------- nav ---------- */
+.toc{border-bottom:1px solid var(--line-soft);background:var(--surface);position:sticky;top:0;z-index:20}
+.toc-inner{display:flex;gap:0;overflow-x:auto;scrollbar-width:thin}
+.toc a{
+  flex:0 0 auto;display:flex;align-items:baseline;gap:8px;
+  padding:13px 16px;text-decoration:none;color:var(--text-2);
+  font-size:.86rem;white-space:nowrap;border-bottom:2px solid transparent;
+}
+.toc a .n{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+.toc a:hover{color:var(--text);background:var(--surface-2)}
+.toc a:focus-visible{outline:2px solid var(--amber);outline-offset:-2px}
+
+/* ---------- sections ---------- */
+section{padding:64px 0;border-bottom:1px solid var(--line-soft)}
+.sec-head{display:flex;gap:16px;align-items:flex-start;margin-bottom:8px}
+.sec-num{
+  font-family:var(--mono);font-size:.8rem;font-weight:600;color:var(--amber);
+  border:1px solid var(--amber-deep);border-radius:6px;padding:3px 8px;flex:0 0 auto;margin-top:6px;
+}
+h2{
+  font-family:var(--display);font-weight:400;
+  font-size:clamp(1.7rem,4vw,2.4rem);line-height:1.2;margin:0;text-wrap:balance;
+}
+h3{font-size:1.08rem;font-weight:600;margin:38px 0 12px;color:var(--text)}
+h4{font-size:.95rem;font-weight:600;margin:24px 0 8px;color:var(--text-2)}
+p{margin:0 0 16px;text-wrap:pretty}
+strong{font-weight:600;color:#fff}
+.dim{color:var(--muted)}
+
+/* takeaway */
+.takeaway{
+  border-left:3px solid var(--amber);
+  background:linear-gradient(90deg,rgba(245,176,65,.09),transparent 70%);
+  padding:16px 20px;margin:22px 0 28px;border-radius:0 8px 8px 0;
+}
+.takeaway .tag{
+  font-family:var(--mono);font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--amber);display:block;margin-bottom:6px;
+}
+.takeaway p{margin:0;font-size:1.04rem;color:var(--text)}
+
+/* note boxes */
+.note{border:1px solid var(--line);border-radius:8px;padding:14px 18px;margin:22px 0;background:var(--surface);font-size:.94rem;color:var(--text-2)}
+.note b{color:var(--text)}
+.note.warn{border-color:#6b5a24;background:rgba(242,201,76,.06)}
+.note.bad{border-color:#6b3a34;background:rgba(255,138,122,.06)}
+
+/* tables */
+.scroll{overflow-x:auto;margin:20px 0;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+caption{text-align:left;padding:12px 16px 0;color:var(--muted);font-size:.82rem;font-family:var(--mono)}
+th,td{padding:9px 14px;text-align:left;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+thead th{
+  font-family:var(--mono);font-size:.74rem;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--muted);font-weight:500;background:var(--surface-2);position:sticky;top:0;
+}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:rgba(255,255,255,.025)}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+.pos{color:var(--good)}
+.neg{color:var(--bad)}
+details.fold{border:1px solid var(--line);border-radius:10px;background:var(--surface-2);margin:14px 0;overflow:hidden}
+details.fold>summary{cursor:pointer;padding:12px 16px;font-size:.9rem;color:var(--text-2);list-style:none;display:flex;align-items:center;gap:8px}
+details.fold>summary::-webkit-details-marker{display:none}
+details.fold>summary::before{content:"▸";color:var(--amber);font-size:.9em;transition:transform .15s ease}
+details[open].fold>summary::before{transform:rotate(90deg)}
+details.fold>summary:hover{color:var(--text)}
+details.fold>summary b{color:var(--text);font-weight:600}
+details.fold .foldbody{padding:0 16px 16px}
+.tierpill{font-family:var(--mono);font-size:.68rem;border:1px solid var(--line);border-radius:4px;padding:1px 5px;color:var(--muted);margin-left:6px;vertical-align:1px}
+.tierpill.t4{border-color:#6b5a24;color:var(--amber)}
+.recmat{font-size:.82rem;color:var(--text-2);white-space:normal;line-height:1.5}
+tbody tr.off td{opacity:.35}
+.hl td{background:rgba(245,176,65,.08)}
+.hl td:first-child{box-shadow:inset 3px 0 0 var(--amber)}
+
+/* gauge */
+.gauge{margin:24px 0}
+.gauge-bar{height:38px;border-radius:8px;overflow:hidden;display:flex;border:1px solid var(--line)}
+.gz{display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:.76rem;font-weight:500}
+.gz1{background:#3A4652;color:#C3D0DA;flex:0 0 50%}
+.gz2{background:#B8912F;color:#1A1206;flex:0 0 30%}
+.gz3{background:#D4552F;color:#1A0A05;flex:0 0 20%}
+.gauge-scale{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.72rem;color:var(--muted);margin-top:6px}
+.gauge-marker{position:relative;height:0}
+.gm{position:absolute;top:-46px;width:2px;height:38px;background:var(--mint);box-shadow:0 0 0 1px rgba(18,24,31,.8)}
+.gm span{position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:.72rem;color:var(--mint);white-space:nowrap;background:var(--ground);padding:0 4px}
+
+/* calculator */
+.calc{
+  border:1px solid var(--line);border-radius:12px;background:var(--surface);
+  margin:28px 0;overflow:hidden;
+}
+.calc-head{
+  padding:14px 20px;background:var(--surface-2);border-bottom:1px solid var(--line);
+  display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;
+}
+.calc-head h3{margin:0;font-size:1rem}
+.calc-head .kicker{font-family:var(--mono);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--amber)}
+.calc-body{padding:20px}
+.field-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:.8rem;color:var(--text-2)}
+input[type=number],select{
+  background:var(--ground);border:1px solid var(--line);border-radius:7px;
+  color:var(--text);font-family:var(--mono);font-size:.92rem;padding:8px 10px;width:100%;
+  font-variant-numeric:tabular-nums;
+}
+input[type=number]:focus,select:focus{outline:2px solid var(--amber);outline-offset:1px;border-color:var(--amber)}
+input[type=range]{width:100%;accent-color:var(--amber)}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{
+  background:var(--ground);border:1px solid var(--line);color:var(--text-2);
+  border-radius:7px;padding:7px 13px;font-family:var(--sans);font-size:.85rem;cursor:pointer;
+}
+.seg button[aria-pressed=true]{background:var(--amber);border-color:var(--amber);color:#1A1206;font-weight:600}
+.seg button:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+.btn{
+  background:var(--amber);color:#1A1206;border:none;border-radius:8px;
+  padding:10px 20px;font-family:var(--sans);font-weight:600;font-size:.92rem;cursor:pointer;
+}
+.btn:hover{background:#FFC15E}
+.btn:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+.calc-out{border-top:1px solid var(--line);background:var(--surface-2);padding:20px}
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:14px;margin-bottom:4px}
+.stat{background:var(--ground);border:1px solid var(--line-soft);border-radius:9px;padding:12px 14px}
+.stat .k{font-size:.76rem;color:var(--muted);display:block;margin-bottom:4px}
+.stat .v{font-family:var(--mono);font-size:1.4rem;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums;line-height:1.2}
+.stat .v small{font-size:.6em;font-weight:400;color:var(--text-2);margin-left:3px}
+.stat.accent .v{color:var(--amber)}
+
+/* bar chart */
+.bars{display:flex;flex-direction:column;gap:7px;margin-top:6px}
+.bar-row{display:grid;grid-template-columns:7.5rem 1fr 6.5rem;align-items:center;gap:10px;font-size:.88rem}
+.bar-track{height:20px;background:var(--ground);border-radius:4px;position:relative;overflow:hidden}
+.bar-fill{height:100%;border-radius:0 4px 4px 0;background:var(--amber);min-width:2px}
+.bar-fill.neg{background:var(--bad)}
+.bar-val{font-family:var(--mono);text-align:right;font-variant-numeric:tabular-nums}
+.bar-name{color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+ul,ol{margin:0 0 16px;padding-left:1.25rem}
+li{margin-bottom:7px}
+li::marker{color:var(--amber)}
+code{font-family:var(--mono);font-size:.88em;background:var(--surface-2);padding:2px 6px;border-radius:4px;color:var(--mint)}
+.formula{
+  font-family:var(--mono);font-size:.9rem;background:var(--ground);border:1px solid var(--line);
+  border-radius:8px;padding:14px 18px;margin:18px 0;color:var(--text-2);overflow-x:auto;
+}
+.formula b{color:var(--amber);font-weight:500}
+hr{border:none;border-top:1px solid var(--line-soft);margin:34px 0}
+
+footer{padding:52px 0 72px;color:var(--muted);font-size:.88rem}
+footer a{color:var(--text-2)}
+.src{font-size:.84rem;line-height:1.7}
+
+@media (max-width:640px){
+  .bar-row{grid-template-columns:5.5rem 1fr 5rem;font-size:.8rem}
+  section{padding:46px 0}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.mono{font-family:var(--mono)}
+.unitseg{display:inline-flex;gap:2px;border:1px solid var(--line);border-radius:6px;overflow:hidden;vertical-align:middle;margin-top:5px}
+.unitseg button{background:var(--ground);border:none;color:var(--muted);font-family:var(--mono);font-size:.68rem;
+  padding:3px 7px;cursor:pointer;line-height:1.4}
+.unitseg button[aria-pressed=true]{background:var(--amber);color:#12100E;font-weight:600}
+.unitseg button:focus-visible{outline:2px solid var(--mint);outline-offset:-2px}
+.savebar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:11px 15px;margin:0 0 16px;
+  border:1px solid var(--line);border-radius:9px;background:var(--surface-2);font-size:.85rem;color:var(--text-2)}
+.savebar .dot{width:8px;height:8px;border-radius:50%;background:var(--good);flex:0 0 auto}
+.savebar b{color:var(--text);font-weight:600}
+.savebar button{background:var(--ground);border:1px solid var(--line);color:var(--text-2);
+  border-radius:7px;padding:5px 11px;font-family:var(--sans);font-size:.82rem;cursor:pointer}
+.savebar button:hover{color:var(--text);border-color:var(--amber)}
+.savebar .push{margin-left:auto}
+.pastebox{border:1px dashed var(--amber-deep);border-radius:10px;padding:14px 16px;background:rgba(167,139,250,.05)}
+.pastelabel{font-weight:600;color:var(--amber);font-size:.92rem}
+#paste{width:100%;margin-top:10px;background:var(--ground);border:1px solid var(--line);border-radius:8px;color:var(--text);
+  font-family:var(--mono);font-size:.85rem;padding:10px 12px;resize:vertical;min-height:96px}
+#paste:focus{outline:2px solid var(--amber);outline-offset:1px}
+.pastebox summary{cursor:pointer}
+.autobox{font-size:.88rem;color:var(--text-2);margin:0 0 12px}
+.autobox b{color:var(--text)}
+.srctag{font-size:.7rem;color:var(--muted);margin-left:4px}
+.pastemsg{margin:8px 0 0;font-size:.85rem;color:var(--text-2)}
+.outnote{margin:16px 0 0;font-size:.9rem;color:var(--text-2)}
+.delta{font-family:var(--mono);font-size:.74rem;margin-top:3px}
+.posbar{width:70px;height:6px;background:var(--ground);border-radius:3px;overflow:hidden;display:inline-block;vertical-align:middle;margin-right:6px}
+.posbar i{display:block;height:100%;background:var(--amber)}
+.badge{display:inline-block;font-size:.76rem;font-weight:600;padding:2px 8px;border-radius:999px;margin-right:4px}
+.badge.good{background:rgba(111,224,168,.15);color:var(--good)}
+.badge.wait{background:rgba(242,201,76,.14);color:var(--warn)}
+.badge.bad{background:rgba(255,138,122,.15);color:var(--bad)}
+.unitseg .um{opacity:.6;font-size:.9em}
+input.flash{outline:2px solid var(--good)!important;transition:outline .2s}
+td input[type=number]{padding:6px 8px}
+</style>
+<style>
+tr.grp td{background:var(--surface-2);font-family:var(--mono);font-size:.76rem;letter-spacing:.06em;color:var(--muted);padding-top:7px;padding-bottom:7px}
+.autobox{font-size:.88rem;color:var(--text-2);margin:0 0 12px}
+.autobox b{color:var(--text)}
+.srctag{font-size:.7rem;color:var(--muted);margin-left:4px}
+</style>
+<header class="masthead">
+  <div class="wrap col">
+    <p class="eyebrow">동글랜드 · 요리사 도구</p>
+    <h1>요리 손익 계산기<span class="sub">변동상점 시세 · 30일 추이 · 판매 타이밍</span></h1>
+    <p class="lede">디스코드 <strong>#요리사-변동상점</strong> 시세가 3시간마다 <strong>자동으로</strong> 들어옵니다. 요리마다 지금 가격이 범위의 어디쯤인지, <strong>지금 팔지 기다릴지</strong>, 재료비를 넣으면 <strong>1개에 얼마 남는지</strong>까지 보여 줍니다.</p>
+    <div class="meta">
+      <span class="chip">시세 <b>3시간마다 자동</b></span>
+      <span class="chip">입력값 <b>자동 저장</b></span>
+      <a class="chip" href="index.html" style="text-decoration:none">룬 계산기 <b>→</b></a>
+    </div>
+  </div>
+</header>
+
+<nav class="toc" aria-label="목차">
+  <div class="wrap">
+    <div class="toc-inner">
+      <a href="#s0"><span class="n">00</span>시세 추이</a>
+      <a href="#s1"><span class="n">01</span>시세와 손익</a>
+      <a href="#s2"><span class="n">02</span>노트</a>
+    </div>
+  </div>
+</nav>
+
+<!-- 00 시세 추이 (tracker.js 가 채움) -->
+<section id="s0" style="padding:28px 0 0;border-bottom:0">
+  <div class="wrap"><div id="trend"></div></div>
+</section>
+
+<!-- 01 -->
+<section id="s1">
+  <div class="wrap">
+    <div class="calc">
+      <div class="calc-head">
+        <span class="kicker">01</span>
+        <h3>변동상점 시세 → 요리 1개 손익</h3>
+        <span class="dim" style="font-size:.82rem">3시간마다 갱신 · 0·3·6·9·12·15·18·21시</span>
+      </div>
+      <div class="calc-body">
+        <div class="autobox" id="auto-msg">시세 불러오는 중…</div>
+        <div class="field-grid">
+          <div class="field">
+            <label>내 차수</label>
+            <div class="seg" id="tier-seg">
+              <button type="button" data-v="1" aria-pressed="true">1차</button>
+              <button type="button" data-v="2">2차</button>
+              <button type="button" data-v="3">3차</button>
+              <button type="button" data-v="4">4차</button>
+            </div>
+          </div>
+          <div class="field">
+            <label for="fee-sel">어디서 파나</label>
+            <select id="fee-sel">
+              <option value="0" selected>변동 상점 · 수수료 없음</option>
+              <option value="0.03">유저 직거래 · 3%</option>
+              <option value="0.05">플리마켓 · 5%</option>
+              <option value="0.07">거래소 · 7%</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="calc-out">
+        <div class="scroll" style="margin-top:0">
+          <table>
+            <thead><tr>
+              <th>요리</th><th class="num">현재가</th><th class="num">범위 위치</th><th class="num">30일 평균</th>
+              <th class="num">재료비 <span class="dim" style="font-weight:400">(직접)</span></th><th class="num">1개 순이익</th>
+              <th>지금 팔까</th>
+            </tr></thead>
+            <tbody id="cook-rows"></tbody>
+          </table>
+        </div>
+        <div class="stat-row" style="margin-top:18px">
+          <div class="stat accent"><span class="k">지금 가장 남는 요리</span><span class="v" id="o-best" style="font-size:1.05rem">–</span></div>
+          <div class="stat"><span class="k">그 요리 1개 순이익</span><span class="v" id="o-bestp">–</span></div>
+          <div class="stat"><span class="k">범위 대비 가장 비싼 요리</span><span class="v" id="o-hot" style="font-size:1.05rem">–</span></div>
+          <div class="stat"><span class="k">다음 시세 갱신까지</span><span class="v" id="o-next">–</span></div>
+        </div>
+        <p id="o-note" class="outnote"></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap col">
+    <div class="note"><b>「지금 팔까」는 룬 계산기와 같은 규칙입니다.</b> 시세는 하한~상한 사이에서 3시간마다 새로 뽑히니, 오늘 남은 갱신이 많을수록 기다렸다가 더 좋은 값을 만날 확률이 큽니다. <b>기준선 이상이면 지금 파는 게 기대값상 유리</b>하고, 아래면 다음 갱신을 기다리는 쪽이 유리합니다. <span class="dim">요리 유통기한이 넉넉하다는 전제입니다.</span></div>
+  </div>
+</section>
+
+<!-- 02 -->
+<section id="s2">
+  <div class="wrap col">
+    <h2>노트</h2>
+    <div class="note warn"><b>재료비는 아직 직접 넣는 칸입니다.</b> 요리별 레시피(재료와 개수)와 재료 시세가 정리되면 룬 계산기처럼 재료비를 자동으로 계산하도록 바꿀 예정입니다. 재료비 칸을 비워 두면 순이익 없이 「지금 팔까」만 판단합니다.</div>
+    <div class="note"><b>고로케</b>는 상점 알림에 가격 범위가 없어 범위 위치와 기준선을 계산하지 않습니다. 대신 위 「시세 추이」에서 30일 최고·최저를 보고 판단하세요.</div>
+    <div class="note"><b>시세 출처</b> — 디스코드 <code>#요리사-변동상점</code> 상점알리미. 3시간마다 자동으로 모아 30일 기록을 보여 줍니다. 품목이 새로 생기거나 범위가 바뀌어도 알림 내용을 따라 자동으로 반영됩니다.</div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap col">
+    <p>틀린 값이나 확인된 수치가 있으면 알려주세요. 계산기 기본값을 바로 고치겠습니다.</p>
+  </div>
+</footer>
+
+<script src="tracker.js"></script>
+<script>
+(function(){
+"use strict";
+var fmt=function(n,d){d=d||0;if(n==null||!isFinite(n))return '–';return n.toLocaleString('ko-KR',{minimumFractionDigits:d,maximumFractionDigits:d});};
+var esc=function(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});};
+var $=function(id){return document.getElementById(id);};
+
+/* ===== 저장 (이 브라우저에만) ===== */
+var STORE_KEY='dongle-guide:cookcalc:v1';
+var state=(function(){try{return JSON.parse(localStorage.getItem(STORE_KEY)||'{}')||{};}catch(e){return {};}})();
+state.price=state.price||{}; state.priceAt=state.priceAt||{}; state.mat=state.mat||{};
+var saveT=null;
+function persist(){ clearTimeout(saveT); saveT=setTimeout(function(){ try{localStorage.setItem(STORE_KEY,JSON.stringify(state));}catch(e){} },250); }
+
+/* ===== 기본 품목 (10.12 12:00 알림 기준) — 자동 시세가 오면 그 목록으로 바뀜 ===== */
+var FALLBACK=[
+  ['고로케',0,null,null],
+  ['아스파라거스 샐러드',1,48,62],['갈릭 포테이토 콩피',1,48,62],['레몬 당근 라페',1,48,62],['어니언 포테이토 그라탱',1,48,62],
+  ['갈릭 아스파라거스 피클',2,69,90],['시트러스 어니언 스튜',2,69,90],['어니언 감자조림',2,69,90],['아스파라거스 라페',2,69,90],
+  ['파프리카 비프 스튜',3,120,156],['피치 레몬 치킨',3,120,156],['허브 램 플래터',3,120,156],['스파이시 갈릭 포크',3,120,156],
+  ['비프 라구 파이',4,191,248],['복숭아 치킨 타르트',4,191,248],['키슈 파이',4,191,248],['갈릭 포크 크로켓',4,191,248]
+];
+var items=FALLBACK.map(function(f){ return {key:f[0],tier:f[1],lo:f[2],hi:f[3],group:f[1]?f[1]+'차 요리':null,price:null,prev:null,series:[],t:0}; });
+
+/* ===== 판매 타이밍 (룬 계산기와 같은 식) ===== */
+function refreshesLeft(){ var h=new Date().getHours(); return 7-Math.floor(h/3); }
+function wNorm(n){ if(n<=1) return 0.5; var v=0.5; for(var i=2;i<=n;i++) v=(1+v*v)/2; return v; }
+function nextRefresh(){ var d=new Date(), n=new Date(d); n.setMinutes(0,0,0); n.setHours((Math.floor(d.getHours()/3)+1)*3); return Math.max(0,Math.round((n-d)/60000)); }
+
+/* ===== 차수 / 수수료 ===== */
+var myTier=Number(state.tier||1);
+$('tier-seg').querySelectorAll('button').forEach(function(b){
+  b.setAttribute('aria-pressed',String(Number(b.getAttribute('data-v'))===myTier));
+  b.addEventListener('click',function(){ myTier=Number(b.getAttribute('data-v')); state.tier=myTier;
+    $('tier-seg').querySelectorAll('button').forEach(function(x){x.setAttribute('aria-pressed',String(x===b));}); persist(); calcAll(); });
+});
+if(state.fee!=null) $('fee-sel').value=state.fee;
+$('fee-sel').addEventListener('change',function(){ state.fee=this.value; persist(); calcAll(); });
+function fee(){ return Number($('fee-sel').value)||0; }
+
+/* ===== 표 만들기 ===== */
+function curPrice(it){ var v=state.price[it.key]; if(v!=null&&(state.priceAt[it.key]||0)>it.t*1000) return v; return it.price!=null?it.price:v; }
+function avg30(it){ var from=Date.now()/1000-30*86400, v=it.series.filter(function(p){return p[0]>=from;}).map(function(p){return p[1];});
+  return v.length?v.reduce(function(a,b){return a+b;},0)/v.length:null; }
+function buildTable(){
+  var tb=$('cook-rows'), h='', lastG;
+  items.forEach(function(it,i){
+    var g=it.group||'기본';
+    if(g!==lastG){ h+='<tr class="grp"><td colspan="7">'+esc(g)+(it.lo!=null?' · '+it.lo+'~'+it.hi:'')+'</td></tr>'; lastG=g; }
+    var manual=state.price[it.key]!=null&&(state.priceAt[it.key]||0)>it.t*1000;
+    var d=!manual&&it.prev!=null&&it.price!=null?it.price-it.prev:null;
+    var m=state.mat[it.key];
+    h+='<tr id="row-'+i+'"><td><strong>'+esc(it.key)+'</strong>'+(it.tier?'<span class="tierpill">'+it.tier+'차</span>':'')+'</td>'+
+      '<td class="num"><input type="number" min="0" step="1" id="p-'+i+'" value="'+(curPrice(it)!=null?curPrice(it):'')+'" style="width:5.5rem">'+
+      '<div class="delta">'+(d!=null?'<span class="'+(d>=0?'pos':'neg')+'">'+(d===0?'±0':(d>0?'▲':'▼')+Math.abs(d))+'</span> <span class="dim">'+it.prev+'→</span>':'')+
+      (manual?'<span class="srctag">직접 입력</span>':it.price!=null?'<span class="srctag">자동</span>':'')+'</div></td>'+
+      '<td class="num" id="pos-'+i+'">–</td><td class="num">'+fmt(avg30(it))+'</td>'+
+      '<td class="num"><input type="number" min="0" step="1" id="m-'+i+'" value="'+(m!=null?m:'')+'" placeholder="–" style="width:5.5rem"></td>'+
+      '<td class="num" id="pf-'+i+'">–</td><td id="vd-'+i+'">–</td></tr>';
+  });
+  tb.innerHTML=h;
+  items.forEach(function(it,i){
+    $('p-'+i).addEventListener('input',function(){ state.price[it.key]=this.value===''?null:Number(this.value); state.priceAt[it.key]=Date.now(); persist(); calcAll(); });
+    $('m-'+i).addEventListener('input',function(){ state.mat[it.key]=this.value===''?null:Number(this.value); persist(); calcAll(); });
+  });
+  calcAll();
+}
+
+/* ===== 계산 ===== */
+function calcAll(){
+  var f=fee(), left=refreshesLeft(), best=null, hot=null;
+  items.forEach(function(it,i){
+    var row=$('row-'+i); if(!row) return;
+    var open=it.tier<=myTier; row.className=open?'':'off';
+    var pv=$('p-'+i).value, p=pv===''?null:Number(pv), mv=$('m-'+i).value, m=mv===''?null:Number(mv);
+    var hasR=it.lo!=null&&it.hi>it.lo;
+    var pos=hasR&&p!=null?(p-it.lo)/(it.hi-it.lo)*100:null;
+    $('pos-'+i).innerHTML=pos==null?'<span class="dim">–</span>':'<div class="posbar"><i style="width:'+Math.max(0,Math.min(100,pos))+'%"></i></div><span class="dim" style="font-size:.78rem">'+fmt(pos)+'%</span>';
+    var pf=p!=null&&m!=null?p*(1-f)-m:null;
+    $('pf-'+i).innerHTML=pf==null?'<span class="dim">–</span>':'<strong class="'+(pf>=0?'pos':'neg')+'">'+(pf>=0?'+':'')+fmt(pf,1)+'</strong>';
+    var vd;
+    if(p==null) vd='<span class="dim">시세 없음</span>';
+    else if(pf!=null&&pf<0) vd='<span class="badge bad">손해</span> <span class="dim">'+fmt(Math.ceil(m/(1-f)))+' 이상에서</span>';
+    else if(!hasR) vd='<span class="dim">범위 정보 없음</span>';
+    else{ var thr=it.lo+(it.hi-it.lo)*wNorm(left);
+      vd=(left<=0||p>=thr)?'<span class="badge good">지금 판매</span> <span class="dim">기준 '+fmt(Math.round(thr))+'</span>'
+                          :'<span class="badge wait">기다리기</span> <span class="dim">기준 '+fmt(Math.round(thr))+'</span>'; }
+    $('vd-'+i).innerHTML=vd;
+    if(open&&pf!=null&&(!best||pf>best.pf)) best={it:it,pf:pf};
+    if(open&&pos!=null&&(!hot||pos>hot.pos)) hot={it:it,pos:pos};
+  });
+  $('o-best').textContent=best?best.it.key:'재료비를 넣어 주세요';
+  $('o-bestp').innerHTML=best?'<span class="'+(best.pf>=0?'pos':'neg')+'">'+(best.pf>=0?'+':'')+fmt(best.pf,1)+'</span><small>냥</small>':'–';
+  $('o-hot').innerHTML=hot?esc(hot.it.key)+' <small>'+fmt(hot.pos)+'%</small>':'–';
+  $('o-next').innerHTML=fmt(nextRefresh())+'<small>분 · 남은 '+left+'회</small>';
+  $('o-note').innerHTML='내 차수(<b>'+myTier+'차</b>)에서 만들 수 있는 요리만 「가장 남는」·「가장 비싼」에 셉니다. 흐린 줄은 아직 못 만드는 요리입니다.';
+}
+
+/* ===== 자동 시세 ===== */
+function applyAuto(info){
+  if(!info){ $('auto-msg').innerHTML='<span class="neg">자동 시세를 불러오지 못했습니다</span> — 현재가 칸에 직접 넣어 주세요.'; return; }
+  items=info.items.slice().sort(function(a,b){ return a.tier-b.tier; });
+  var when=DongleTracker.timeLabel(info.latest);
+  var manual=items.filter(function(it){ return state.price[it.key]!=null&&(state.priceAt[it.key]||0)>it.t*1000; }).length;
+  $('auto-msg').innerHTML='⚡ 현재가 <b>'+(items.length-manual)+'종 자동 반영</b> · '+when+' 시세'+(manual?' · 직접 고친 '+manual+'종은 다음 갱신까지 유지':'')+
+    (info.stale?' · <span class="neg">수집이 늦어지고 있어요</span>':'');
+  buildTable();
+}
+
+buildTable();
+if(window.DongleTracker){
+  DongleTracker.mount($('trend'),{
+    shop:'cook', title:'요리 시세 추이', icon:function(){ return '🍳'; },
+    defaultSel:function(list){ var best=null; list.forEach(function(it){ if(it.tier&&it.tier<=myTier) best=it.key; }); return best; },
+    onData:applyAuto
+  });
+}else{ $('auto-msg').textContent='tracker.js 파일이 없어 자동 시세를 쓸 수 없습니다 — 현재가 칸에 직접 넣어 주세요.'; }
+setInterval(function(){ $('o-next').innerHTML=fmt(nextRefresh())+'<small>분 · 남은 '+refreshesLeft()+'회</small>'; },30000);
+})();
+</script>
+
+</body></html>
