@@ -175,11 +175,6 @@ def collect_once(token, channels, rows, known):
     return new_rows
 
 
-def next_slot(now):
-    """지금 이후 가장 가까운 갱신 시각(유닉스 초)."""
-    return (int(now) // (SLOT_HOURS * 3600) + 1) * SLOT_HOURS * 3600
-
-
 def main():
     token = os.environ.get("DISCORD_BOT_TOKEN", "").strip()
     wait = "--wait" in sys.argv   # 다음 갱신까지 기다렸다가 알림이 올라오면 바로 가져오는 모드
@@ -188,27 +183,22 @@ def main():
         known = {r["id"] for r in rows}
         channels = text_channels(token)
         new_rows = collect_once(token, channels, rows, known)
-        all_shops = set(CONFIG["channels"])
-        have = lambda sl: {r["shop"] for r in rows if to_slot(r["ts"]) == sl}
-        now = time.time()
-        slot = next_slot(now)
-        if now - (slot - SLOT_HOURS * 3600) < 25 * 60 and not have(slot - SLOT_HOURS * 3600) >= all_shops:
-            slot -= SLOT_HOURS * 3600   # 방금 지난 정시 알림을 아직 못 받았으면 그것부터
-        if wait:
-            # 정시까지 기다렸다가 10초마다 확인. 두 상점이 다 오면 바로 끝냄.
-            # 한 상점만 왔으면 1분 더 기다리고, 정시 25분 뒤까지 안 오면 포기.
-            print(f"{datetime.fromtimestamp(slot, KST):%m-%d %H:%M} 알림을 기다립니다")
-            time.sleep(max(0, slot - time.time() - 5))
-            first_hit = None
-            while time.time() < slot + 25 * 60:
-                new_rows += collect_once(token, channels, rows, known)
-                got = have(slot)
-                if got and first_hit is None:
-                    first_hit = time.time()
-                if got >= all_shops or (first_hit and time.time() - first_hit > 60):
-                    print(f"정시 + {int(time.time() - slot)}초에 받음")
+        if wait and not new_rows:
+            # 새 알림이 올라올 때까지 15초마다 확인 (최대 3시간 20분).
+            # 알림이 오면 다른 상점 알림도 1분 더 기다렸다가 끝냄 → 저장 후 다음 실행이 이어서 기다림.
+            # 상점 알림 시각이 정확히 3시간 간격이 아니어도 놓치지 않게 '정시'에 의존하지 않는다.
+            start = time.time()
+            print("새 알림을 기다립니다 (15초마다 확인)")
+            while time.time() - start < 200 * 60:
+                time.sleep(15)
+                got = collect_once(token, channels, rows, known)
+                if got:
+                    new_rows += got
+                    print(f"{datetime.now(KST):%H:%M:%S} 알림 받음 → 1분 더 기다렸다 저장")
+                    for _ in range(4):
+                        time.sleep(15)
+                        new_rows += collect_once(token, channels, rows, known)
                     break
-                time.sleep(10)
         for shop in CONFIG["channels"]:
             print(f"[{shop}] 새 시세 알림 {sum(1 for r in new_rows if r['shop'] == shop)}개")
     else:
