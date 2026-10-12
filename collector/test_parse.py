@@ -58,6 +58,13 @@ class IngestTest(unittest.TestCase):
 
 
 class BuildTest(unittest.TestCase):
+    def test_prev_zero_ignored(self):
+        row = {"id": "x", "shop": "alch", "ts": "2026-10-12T12:21:00+00:00",
+               "content": "[화염저항룬 180~270]\n[룬 ㅣ 화염저항] | 0 → 186"}
+        with mock.patch.object(collect.time, "time", return_value=1791800000):
+            out = collect.build([row])
+        self.assertEqual([s[1] for s in out["shops"]["alch"]["snaps"]], [{"화염저항": 186}])
+
     def test_slots(self):
         # 12:03 KST → 12:00 칸, 14:58 KST → 15:00 칸
         self.assertEqual(collect.to_slot("2026-10-12T03:03:00+00:00"),

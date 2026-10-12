@@ -133,9 +133,11 @@ def build(rows):
             shop["items"][it["key"]] = {k: it[k] for k in ("key", "group", "tier", "lo", "hi")}
             snap[it["key"]] = it["price"]
             # 직전값(prev)도 기록: 수집이 한 번 빠졌을 때 이전 칸을 채울 수 있음
-            prev_slot = slot - SLOT_HOURS * 3600
-            prev_snap = shop["snaps"].setdefault(prev_slot, {})
-            prev_snap.setdefault(it["key"], it["prev"])
+            # 직전값이 0이면 상점이 초기화된 뒤 첫 알림이라 기록하지 않음
+            if it["prev"] > 0:
+                prev_slot = slot - SLOT_HOURS * 3600
+                prev_snap = shop["snaps"].setdefault(prev_slot, {})
+                prev_snap.setdefault(it["key"], it["prev"])
     out = {"version": 1, "updated": int(time.time()), "slot_hours": SLOT_HOURS, "shops": {}}
     for name, shop in shops.items():
         out["shops"][name] = {
