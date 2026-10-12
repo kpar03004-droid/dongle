@@ -1,6 +1,6 @@
 {
   "channels": {
-    "alch": {"label": "연금술사 변동상점", "id": ""},
-    "cook": {"label": "요리사 변동상점", "id": ""}
+    "alch": {"label": "연금술사 변동상점", "id": "", "match": "연금"},
+    "cook": {"label": "요리사 변동상점", "id": "", "match": "요리"}
   }
 }

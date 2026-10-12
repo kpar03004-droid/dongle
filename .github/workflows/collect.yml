@@ -7,6 +7,9 @@ on:
     - cron: "7 */3 * * *"
     - cron: "37 */3 * * *"
   workflow_dispatch: {}   # Actions 화면에서 「Run workflow」로 바로 돌려볼 수 있게
+  push:                   # 수집기 코드를 고치면 바로 한 번 돌려 봄
+    branches: [main]
+    paths: ["collector/**", ".github/workflows/**"]
 
 permissions:
   contents: write         # 수집한 데이터를 저장소에 커밋하려면 필요

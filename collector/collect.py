@@ -78,6 +78,21 @@ def fetch_new(channel_id, after_id, token):
     return got
 
 
+def discover_channels(token):
+    """config.json 에 채널 ID가 없으면, 봇이 들어가 있는 서버에서 이름으로 채널을 찾는다.
+    예) 채널 이름에 「연금」이 들어가면 연금술사, 「요리」가 들어가면 요리사."""
+    found = {}
+    for guild in discord_get("/users/@me/guilds", token):
+        for ch in discord_get(f"/guilds/{guild['id']}/channels", token):
+            if ch.get("type") not in (0, 5):  # 글 채널 · 공지 채널만
+                continue
+            for shop, conf in CONFIG["channels"].items():
+                if shop not in found and conf["match"] in ch.get("name", ""):
+                    found[shop] = ch["id"]
+                    print(f"[{shop}] 채널 찾음: {guild['name']} #{ch['name']}")
+    return found
+
+
 # ---------- 원문 보관 ----------
 def load_raw():
     rows = []
@@ -140,13 +155,15 @@ def main():
     if token:
         known = {r["id"] for r in rows}
         new_rows = []
+        found = discover_channels(token)
         for shop, ch in CONFIG["channels"].items():
-            if not ch.get("id"):
-                print(f"[{shop}] 채널 ID가 비어 있어 건너뜀")
+            ch_id = ch.get("id") or found.get(shop)
+            if not ch_id:
+                print(f"[{shop}] 채널을 찾지 못해 건너뜀 (채널 이름에 「{ch['match']}」가 들어가야 합니다)")
                 continue
             last = max((int(r["id"]) for r in rows
                         if r["shop"] == shop and r["id"].isdigit()), default=None)
-            msgs = fetch_new(ch["id"], str(last) if last else None, token)
+            msgs = fetch_new(ch_id, str(last) if last else None, token)
             for m in msgs:
                 if m["id"] in known or not m.get("content"):
                     continue
