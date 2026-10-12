@@ -156,6 +156,14 @@ def collect_once(token, channels, rows, known):
         except urllib.error.HTTPError as e:
             print(f"  #{ch['name']} 읽기 실패 ({e.code}) — 봇에게 이 채널 보기 권한이 없을 수 있어요")
             continue
+        if msgs:
+            # 진단용: 읽은 메시지 수 · 내용이 있는 수 · 임베드 수 · 마지막 메시지 앞부분
+            with_text = sum(1 for m in msgs if m.get("content"))
+            with_embed = sum(1 for m in msgs if m.get("embeds"))
+            last_m = msgs[-1]
+            print(f"  #{ch['name']}: 메시지 {len(msgs)}개 (내용 있음 {with_text} · 임베드 {with_embed}) "
+                  f"마지막 {last_m['timestamp'][:16]} type={last_m.get('type')} "
+                  f"내용={(last_m.get('content') or '')[:30]!r}")
         for m in msgs:
             shop = shop_of(m.get("content") or "")
             if m["id"] in known or not shop:
